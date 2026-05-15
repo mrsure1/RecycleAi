@@ -275,6 +275,8 @@ private fun BottomCardContent(
                         hint = null,
                     )
                 }
+                Spacer(Modifier.height(Tokens.Sp24))
+                CorrectionInput(onSubmit = onSubmitText)
             }
 
             is SheetState.Clarify -> {
@@ -577,3 +579,57 @@ private fun AskUserContent(
     }
 }
 
+@Composable
+private fun CorrectionInput(onSubmit: (String) -> Unit) {
+    var text by remember { mutableStateOf("") }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Tokens.Radius16))
+            .background(Tokens.SurfaceMuted)
+            .padding(Tokens.Sp16)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Outlined.AutoAwesome,
+                contentDescription = null,
+                tint = Tokens.PrimaryGreen,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(Modifier.width(Tokens.Sp8))
+            Text("정보가 실제와 다른가요?", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
+        }
+        Spacer(Modifier.height(Tokens.Sp8))
+        Text(
+            "재질이나 상태를 묘사해주시면 AI가 다시 안내해 드립니다.",
+            fontSize = Tokens.CaptionSize,
+            color = Tokens.TextSecondary
+        )
+        Spacer(Modifier.height(Tokens.Sp12))
+        OutlinedTextField(
+            value = text,
+            onValueChange = { text = it },
+            placeholder = { Text("예: 컵 본체는 종이재질이야", color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize) },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 2,
+            shape = RoundedCornerShape(Tokens.Radius12),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Tokens.Surface,
+                unfocusedContainerColor = Tokens.Surface,
+                focusedBorderColor = Tokens.PrimaryGreen,
+                unfocusedBorderColor = Color.Transparent,
+            ),
+            trailingIcon = {
+                IconButton(onClick = {
+                    if (text.isNotBlank()) {
+                        val v = text
+                        text = ""
+                        onSubmit(v)
+                    }
+                }) {
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "다시 묻기", tint = Tokens.PrimaryGreen)
+                }
+            }
+        )
+    }
+}
