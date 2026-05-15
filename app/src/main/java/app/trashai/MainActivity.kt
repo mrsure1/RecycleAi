@@ -6,6 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.rememberTransformableState
@@ -291,7 +297,7 @@ private fun BottomCardContent(
         when (val s = state.sheetState) {
             SheetState.Idle -> IdleCardContent()
 
-            is SheetState.Loading -> CenteredCaption(s.message)
+            is SheetState.Loading -> AnimatedLoadingScreen(s.message)
 
             is SheetState.Item -> {
                 ItemRuleBody(s.rule, regionLabel = state.regionLabel)
@@ -442,9 +448,65 @@ private fun CardHeader(title: String, subtitle: String?, accent: Color = Tokens.
 }
 
 @Composable
-private fun CenteredCaption(text: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text, color = Tokens.TextSecondary, fontSize = Tokens.BodySize)
+private fun AnimatedLoadingScreen(text: String) {
+    val infiniteTransition = rememberInfiniteTransition(label = "loading_pulse")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    this.alpha = alpha
+                }
+                .clip(CircleShape)
+                .background(Tokens.PrimaryGreenSoft),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.AutoAwesome,
+                contentDescription = null,
+                tint = Tokens.PrimaryGreen,
+                modifier = Modifier.size(40.dp)
+            )
+        }
+        Spacer(Modifier.height(Tokens.Sp24))
+        Text(
+            text = text,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = Tokens.PrimaryGreen,
+            modifier = Modifier.graphicsLayer { this.alpha = alpha }
+        )
+        Spacer(Modifier.height(Tokens.Sp8))
+        Text(
+            text = "AI가 쓰레기 종류를 분석하고 있습니다",
+            fontSize = Tokens.CaptionSize,
+            color = Tokens.TextSecondary
+        )
     }
 }
 
