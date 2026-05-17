@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
  */
 class GeminiClient(
     private val apiKey: String = BuildConfig.GEMINI_API_KEY,
-    private val model: String = "gemini-2.5-flash",
+    private val model: String = "gemini-3.1-flash-lite",
 ) {
     private val http = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)

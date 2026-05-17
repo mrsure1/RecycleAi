@@ -17,6 +17,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,68 +61,86 @@ fun GestureOverlay(
     onBoxTap: (Detection) -> Unit,
     onRegionConfirmed: (rectInScreenPx: Rect, canvasSize: IntSize) -> Unit,
     modifier: Modifier = Modifier,
+    onDrawingStateChange: (Boolean) -> Unit = {},
 ) {
     var dragStart by remember { mutableStateOf<Offset?>(null) }
     var dragEnd by remember { mutableStateOf<Offset?>(null) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val detsState = rememberUpdatedState(detections)
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                canvasSize = IntSize(size.width, size.height)
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    val downPos = down.position
+    LaunchedEffect(dragStart, dragEnd) {
+        onDrawingStateChange(dragStart != null && dragEnd != null)
+    }
 
-                    // Distinguish tap vs drag by touch slop.
-                    val slop = awaitTouchSlopOrCancellation(down.id) { change, _ ->
-                        change.consume()
-                    }
+    // 최상위 컨테이너 (여기에 pointerInput을 달지 않습니다! 레이어를 분리하기 위함)
+    Box(modifier = modifier.fillMaxSize()) {
+        // 1. 하위 레이어: 제스처 감지 및 캔버스 드로잉 전용 Box
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    canvasSize = IntSize(size.width, size.height)
+                    awaitEachGesture {
+                        // 상위 레이어의 버튼이 터치 이벤트를 소비했으면 무시하도록 requireUnconsumed = true로 설정합니다.
+                        val down = awaitFirstDown(requireUnconsumed = true)
+                        val downPos = down.position
 
-                    if (slop == null) {
-                        // Tap. Hit-test detection boxes; smallest containing wins.
-                        val canvasW = size.width.toFloat()
-                        val canvasH = size.height.toFloat()
-                        val mapped = mapAll(detsState.value, canvasW, canvasH)
-                        val hit = mapped
-                            .filter { downPos.x in it.left..it.right && downPos.y in it.top..it.bottom }
-                            .minByOrNull { (it.right - it.left) * (it.bottom - it.top) }
-                        if (hit != null) {
-                            // Clear any stale drag rect on a successful box tap
-                            dragStart = null; dragEnd = null
-                            onBoxTap(hit.src)
-                        }
-                    } else {
-                        // Drag. Track until release to draw a custom region.
-                        dragStart = downPos
-                        dragEnd = slop.position
-                        drag(slop.id) { change ->
-                            dragEnd = change.position
+                        // Distinguish tap vs drag by touch slop.
+                        val slop = awaitTouchSlopOrCancellation(down.id) { change, _ ->
                             change.consume()
                         }
-                        // dragStart/dragEnd persist for confirm/cancel UI below
+
+                        if (slop == null) {
+                            // Tap. Hit-test detection boxes; smallest containing wins.
+                            // 드래그 영역 선택 메뉴("이 영역 분석", "취소")가 떠 있을 때 버튼을 탭한 경우,
+                            // 하단에 위치한 바운딩 박스가 잘못 선택되는 것을 방지하기 위해 탭 이벤트를 무시합니다.
+                            if (dragStart != null && dragEnd != null) {
+                                return@awaitEachGesture
+                            }
+
+                            val canvasW = size.width.toFloat()
+                            val canvasH = size.height.toFloat()
+                            val mapped = mapAll(detsState.value, canvasW, canvasH)
+                            val hit = mapped
+                                .filter { downPos.x in it.left..it.right && downPos.y in it.top..it.bottom }
+                                .minByOrNull { (it.right - it.left) * (it.bottom - it.top) }
+                            if (hit != null) {
+                                // Clear any stale drag rect on a successful box tap
+                                dragStart = null; dragEnd = null
+                                onBoxTap(hit.src)
+                            }
+                        } else {
+                            // Drag. Track until release to draw a custom region.
+                            dragStart = downPos
+                            dragEnd = slop.position
+                            drag(slop.id) { change ->
+                                dragEnd = change.position
+                                change.consume()
+                            }
+                            // dragStart/dragEnd persist for confirm/cancel UI below
+                        }
                     }
                 }
-            }
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            // Detection boxes (auto-detected)
-            val mapped = mapAll(detsState.value, size.width, size.height)
-            for (m in mapped) {
-                drawNeonBrackets(this, m.left, m.top, m.right, m.bottom)
-            }
-            // User drag rectangle
-            val s = dragStart; val e = dragEnd
-            if (s != null && e != null) {
-                val left = minOf(s.x, e.x); val top = minOf(s.y, e.y)
-                val right = maxOf(s.x, e.x); val bottom = maxOf(s.y, e.y)
-                drawNeonBrackets(this, left, top, right, bottom)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                // Detection boxes (auto-detected)
+                val mapped = mapAll(detsState.value, size.width, size.height)
+                for (m in mapped) {
+                    drawNeonBrackets(this, m.left, m.top, m.right, m.bottom)
+                }
+                // User drag rectangle
+                val s = dragStart; val e = dragEnd
+                if (s != null && e != null) {
+                    val left = minOf(s.x, e.x); val top = minOf(s.y, e.y)
+                    val right = maxOf(s.x, e.x); val bottom = maxOf(s.y, e.y)
+                    drawNeonBrackets(this, left, top, right, bottom)
+                }
             }
         }
 
-        // Confirm/cancel for the drag rect
+        // 2. 상위 레이어 (최상단 Layer): Confirm/cancel 팝업 메뉴
+        // 하위 레이어(제스처 Box)와 완전히 독립된 형제(Sibling)로서 위에 덮어씌워지며,
+        // 버튼 클릭 시 터치 이벤트가 하위 레이어로 전파되지 않고 100% 소비됩니다.
         val s = dragStart; val e = dragEnd
         if (s != null && e != null) {
             val left = minOf(s.x, e.x); val top = minOf(s.y, e.y)

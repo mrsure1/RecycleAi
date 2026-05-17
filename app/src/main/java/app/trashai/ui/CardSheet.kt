@@ -17,13 +17,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.outlined.EnergySavingsLeaf
-import androidx.compose.material.icons.outlined.Recycling
-import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextAlign
@@ -86,33 +83,73 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
         .map { it.trim() }
         .filter { it.length >= 2 }
         .take(5)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .shadow(
-                elevation = 2.dp,
-                shape = RoundedCornerShape(Tokens.Radius12),
-                spotColor = Color(0x1A000000),
-                ambientColor = Color(0x0A000000)
-            )
-            .background(Tokens.Surface, RoundedCornerShape(Tokens.Radius12))
-            .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
-            .padding(Tokens.Sp16),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val displaySteps = steps.take(3)
-        displaySteps.forEachIndexed { i, step ->
-            StepColumn(i + 1, step, modifier = Modifier.weight(1f).padding(horizontal = 4.dp))
-            if (i < displaySteps.size - 1) {
-                Box(
+    if (steps.size <= 2) {
+        // Case 1: 1~2개일 때 가로 배치 (중간에 화살표 표시)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Tokens.Sp8)
+        ) {
+            steps.forEachIndexed { i, step ->
+                StepColumn(
+                    number = i + 1, 
+                    body = step, 
                     modifier = Modifier
-                        .width(1.dp)
+                        .weight(1f)
                         .fillMaxHeight()
-                        .padding(vertical = Tokens.Sp8)
-                        .background(Tokens.Divider)
+                        .shadow(
+                            elevation = 2.dp,
+                            shape = RoundedCornerShape(Tokens.Radius12),
+                            spotColor = Color(0x1A000000),
+                            ambientColor = Color(0x0A000000)
+                        )
+                        .background(Tokens.Surface, RoundedCornerShape(Tokens.Radius12))
+                        .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
+                        .padding(Tokens.Sp16)
                 )
+                if (i < steps.size - 1) {
+                    Icon(
+                        imageVector = Icons.Outlined.ChevronRight,
+                        contentDescription = "다음 단계",
+                        tint = Tokens.PrimaryGreen,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+    } else {
+        // Case 2: 3개 이상일 때 세로 배치 (각각 중간에 화살표 표시)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Tokens.Sp8)
+        ) {
+            steps.forEachIndexed { i, step ->
+                StepColumn(
+                    number = i + 1, 
+                    body = step, 
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(
+                            elevation = 2.dp,
+                            shape = RoundedCornerShape(Tokens.Radius12),
+                            spotColor = Color(0x1A000000),
+                            ambientColor = Color(0x0A000000)
+                        )
+                        .background(Tokens.Surface, RoundedCornerShape(Tokens.Radius12))
+                        .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
+                        .padding(Tokens.Sp16)
+                )
+                if (i < steps.size - 1) {
+                    Icon(
+                        imageVector = Icons.Outlined.KeyboardArrowDown,
+                        contentDescription = "다음 단계",
+                        tint = Tokens.PrimaryGreen,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     }
@@ -169,23 +206,33 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
         }
     }
 
-    Spacer(Modifier.height(Tokens.Sp12))
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Spacer(Modifier.height(Tokens.Sp16))
+    
+    // ---- Source & Attribution (Sleek but subtle) ----------------------------
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(Tokens.Radius8))
+            .background(Tokens.SurfaceMuted.copy(alpha = 0.5f))
+            .padding(horizontal = Tokens.Sp8, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             "출처 : ",
-            fontSize = Tokens.TagSize,
-            color = Tokens.TextSecondary,
+            fontSize = 11.sp,
+            color = Tokens.TextSecondary.copy(alpha = 0.8f),
+            fontWeight = FontWeight.Medium
         )
         androidx.compose.foundation.Image(
-            painter = androidx.compose.ui.res.painterResource(id = app.trashai.R.drawable.flogo),
-            contentDescription = "출처 로고",
-            modifier = Modifier.height(14.dp)
+            painter = androidx.compose.ui.res.painterResource(id = app.trashai.R.drawable.gov_logo),
+            contentDescription = "기관 로고",
+            modifier = Modifier.height(16.dp)
         )
-        Spacer(Modifier.width(Tokens.Sp4))
+        Spacer(Modifier.width(Tokens.Sp6))
         Text(
             rule.sourceName,
-            fontSize = Tokens.TagSize,
+            fontSize = 11.sp,
             color = Tokens.TextSecondary,
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -244,13 +291,18 @@ private fun SectionHeader(
 
 @Composable
 private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier) {
+    val bulletRegex = Regex("^[•\\-*·\\d.]+\\s*")
+    val lines = body.split('\n')
+        .map { it.trim().replaceFirst(bulletRegex, "") }
+        .filter { it.isNotEmpty() }
+
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.Start
     ) {
         Box(
             modifier = Modifier
-                .size(24.dp)
+                .size(22.dp)
                 .clip(CircleShape)
                 .background(Tokens.PrimaryGreenSoft),
             contentAlignment = Alignment.Center,
@@ -259,17 +311,53 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
                 "$number",
                 color = Tokens.PrimaryGreen,
                 fontWeight = FontWeight.Bold,
-                fontSize = Tokens.CaptionSize,
+                fontSize = 11.sp,
             )
         }
         Spacer(Modifier.height(Tokens.Sp8))
-        Text(
-            body.replaceFirst(Regex("^\\d+\\.\\s*"), ""),
-            color = Tokens.TextPrimary,
-            fontSize = 12.sp,
-            lineHeight = androidx.compose.ui.unit.TextUnit(16f, androidx.compose.ui.unit.TextUnitType.Sp),
-            textAlign = TextAlign.Center
-        )
+        
+        if (lines.size <= 1) {
+            // Case 1: Single item - No dot, just text
+            Text(
+                text = lines.firstOrNull() ?: "",
+                color = Tokens.TextPrimary,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+                textAlign = TextAlign.Start,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 4.dp) // Ensure padding from dividers
+            )
+        } else {
+            // Case 2: Multiple items - Perfect hanging indent with fixed bullet width
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Tokens.Sp4),
+                modifier = Modifier.padding(horizontal = 4.dp)
+            ) {
+                lines.forEach { line ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = "•",
+                            color = Tokens.PrimaryGreen,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.width(12.dp) // Fixed width for bullet to force indent
+                        )
+                        Text(
+                            text = line,
+                            color = Tokens.TextPrimary,
+                            fontSize = 13.sp,
+                            lineHeight = 17.sp,
+                            textAlign = TextAlign.Start,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f) // Text stays in its own column
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -303,8 +391,42 @@ private fun InfoBlock(
                 fontWeight = FontWeight.SemiBold,
                 color = iconTint,
             )
-            Spacer(Modifier.height(Tokens.Sp4))
-            Text(body, fontSize = Tokens.CaptionSize, color = Tokens.TextPrimary)
+            // Clean up DB text: remove existing bullets (•, -, *, ·) or numbers (1.) from start
+            val bulletRegex = Regex("^[•\\-*·\\d.]+\\s*")
+            val lines = body.split('\n')
+                .map { it.trim().replaceFirst(bulletRegex, "") }
+                .filter { it.isNotEmpty() }
+
+            if (lines.size <= 1) {
+                // Case 1: Single item - No bullet, just text
+                Text(
+                    text = lines.firstOrNull() ?: "",
+                    fontSize = Tokens.CaptionSize,
+                    color = Tokens.TextPrimary,
+                    lineHeight = 16.sp
+                )
+            } else {
+                // Case 2: Multiple items - Bulleted list with hanging indent
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    lines.forEach { line ->
+                        Row(verticalAlignment = Alignment.Top) {
+                            Text(
+                                "•",
+                                fontSize = Tokens.CaptionSize,
+                                color = iconTint.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(end = 6.dp)
+                            )
+                            Text(
+                                text = line,
+                                fontSize = Tokens.CaptionSize,
+                                color = Tokens.TextPrimary,
+                                lineHeight = 16.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

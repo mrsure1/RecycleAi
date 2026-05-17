@@ -46,12 +46,14 @@ sealed interface SheetState {
         val history: List<Turn> = emptyList(),
     ) : SheetState
 
-    /** "Is this the right item?" confirmation step. */
     data class Confirming(
         val rule: ItemRule,
         val alternates: List<KeywordHit>,
         val sourceLabel: String,
     ) : SheetState
+
+    /** Legal info & App info sheet. */
+    data class Info(val initialTab: String = "개인정보 처리방침") : SheetState
 
     data class Turn(val from: Speaker, val text: String)
     enum class Speaker { Ai, User }
@@ -130,6 +132,10 @@ class AppState(private val appContext: Context) {
 
     fun dismissSheet() {
         _state.update { it.copy(sheetState = SheetState.Idle, lastCapturedJpeg = null) }
+    }
+
+    fun showInfo(tab: String = "개인정보 처리방침") {
+        _state.update { it.copy(sheetState = SheetState.Info(tab)) }
     }
 
     /** Tap location pill → fetch GPS + reverse-geocode, update header label. */

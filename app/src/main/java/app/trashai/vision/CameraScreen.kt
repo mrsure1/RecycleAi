@@ -104,6 +104,7 @@ private fun CameraWithLens(onCaptureBytes: (ByteArray) -> Unit) {
     val analyzerExecutor = remember { Executors.newSingleThreadExecutor() }
     val detector = remember { MlKitDetector() }
     var latestResult by remember { mutableStateOf<DetectionResult?>(null) }
+    var isUserDrawing by remember { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -163,6 +164,7 @@ private fun CameraWithLens(onCaptureBytes: (ByteArray) -> Unit) {
                 }
             },
             modifier = Modifier.fillMaxSize(),
+            onDrawingStateChange = { isDrawing -> isUserDrawing = isDrawing }
         )
 
         // Hint pill
@@ -185,21 +187,24 @@ private fun CameraWithLens(onCaptureBytes: (ByteArray) -> Unit) {
             )
         }
 
-        // Full-frame analyze fallback
-        Button(
-            onClick = {
-                val src = latestResult?.sourceBitmap ?: return@Button
-                scope.launch {
-                    val bytes = withContext(Dispatchers.Default) { bitmapToJpeg(src) }
-                    if (bytes != null) onCaptureBytes(bytes)
-                }
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 24.dp, bottom = 96.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D5A27)),
-        ) {
-            Text("전체 화면 분석")
+        // Full-frame analyze fallback (사용자가 영역을 드래그 중이 아닐 때만 표시)
+        if (!isUserDrawing) {
+            Button(
+                onClick = {
+                    val src = latestResult?.sourceBitmap ?: return@Button
+                    scope.launch {
+                        val bytes = withContext(Dispatchers.Default) { bitmapToJpeg(src) }
+                        if (bytes != null) onCaptureBytes(bytes)
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0x88000000)),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+            ) {
+                Text("전체 화면 분석", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
+            }
         }
     }
 }

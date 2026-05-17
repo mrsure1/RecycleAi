@@ -36,6 +36,12 @@ object Tokens {
     val ScrimStrong = Color(0xCC000000)
     val NeonGreen = Color(0xFF7CFF6B)
 
+    // AI & Premium
+    val AiGradientStart = Color(0xFF7C4DFF) // Deep Purple
+    val AiGradientEnd = Color(0xFF00B8D4)   // Bright Cyan
+    val AiCardBg = Color(0xFF121212)
+    val AiText = Color(0xFFE0E0E0)
+
     // Type sizes
     val TitleSize = 22.sp
     val SubtitleSize = 13.sp
@@ -50,7 +56,9 @@ object Tokens {
     val Sp8 = 8.dp
     val Sp12 = 12.dp
     val Sp16 = 16.dp
+    val Sp20 = 20.dp
     val Sp24 = 24.dp
+    val Radius8 = 8.dp
     val Radius12 = 12.dp
     val Radius16 = 16.dp
     val Radius24 = 24.dp
