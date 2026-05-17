@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
 data class AppUiState(
     val sheetState: SheetState = SheetState.Idle,
     /** Region label shown in the top pill. Defaults to manual seed; updated by GPS. */
-    val regionLabel: String = "고양시 일산동구",
+    val regionLabel: String = "위치 확인 중...",
     val regionLoading: Boolean = false,
     /** JPEG of the most recent capture (cropped or full). Shown in the top half
      *  whenever a result sheet is open, replacing the live preview. */

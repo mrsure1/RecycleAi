@@ -111,12 +111,20 @@ private fun TrashAiApp() {
     val viewModel = remember { AppState(context.applicationContext) }
     val state by viewModel.state.collectAsState()
 
-    LaunchedEffect(Unit) { viewModel.preloadDb() }
-
     val locationPermLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { granted ->
         if (granted.values.any { it }) viewModel.fetchRegionFromGps()
+    }
+
+    LaunchedEffect(Unit) { 
+        viewModel.preloadDb() 
+        locationPermLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+        )
     }
 
     Column(Modifier.fillMaxSize().background(Color.Black)) {
@@ -225,7 +233,7 @@ private fun TrashAiApp() {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            color = Tokens.Surface,
+            color = Tokens.Surface.copy(alpha = 0.9f), // Subtle Glassmorphism base
             shape = RoundedCornerShape(topStart = Tokens.Radius24, topEnd = Tokens.Radius24),
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,

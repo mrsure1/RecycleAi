@@ -73,12 +73,20 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
 
     Spacer(Modifier.height(Tokens.Sp16))
 
-    // ---- "이렇게 배출하세요" --------------------------------------------------
-    SectionHeader(icon = Icons.Outlined.EnergySavingsLeaf, text = "이렇게 배출하세요")
+    // ---- 배출 안내 (지역/공통 분기) --------------------------------------------------
+    val isRegionalOverride = regionLabel != null && regionLabel != "위치 확인 중..."
+    
+    if (isRegionalOverride) {
+        SectionHeader(icon = Icons.Outlined.LocationOn, text = "$regionLabel 맞춤 분리방법")
+    } else {
+        SectionHeader(icon = Icons.Outlined.EnergySavingsLeaf, text = "전국 공통 분류방법")
+    }
 
     Spacer(Modifier.height(Tokens.Sp8))
 
-    val steps = (rule.dischargeMethod ?: rule.appSummary ?: "분리배출 정보가 없습니다.")
+    val dischargeText = rule.dischargeMethod ?: rule.appSummary ?: "분리배출 정보가 없습니다."
+
+    val steps = dischargeText
         .split('.', '。', '\n')
         .map { it.trim() }
         .filter { it.length >= 2 }
@@ -153,6 +161,26 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
             }
         }
     }
+    // ---- Region Time and Location ----------------------------------------------
+    if (isRegionalOverride) {
+        Spacer(Modifier.height(Tokens.Sp12))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Tokens.Radius12))
+                .background(Color.White.copy(alpha = 0.6f)) // Subtle Glassmorphism
+                .border(1.dp, Color.White, RoundedCornerShape(Tokens.Radius12))
+                .padding(Tokens.Sp16)
+        ) {
+            Text(
+                text = "⏰ 배출 시간: 해당 지자체(또는 아파트) 안내 시간 참조\n🗑️ 배출 장소: 정해진 배출 수거함 또는 문 앞",
+                color = Tokens.TextSecondary,
+                fontSize = 13.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
 
     rule.featureText?.let {
         Spacer(Modifier.height(Tokens.Sp12))
@@ -161,49 +189,6 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
     rule.cautionText?.let {
         Spacer(Modifier.height(Tokens.Sp8))
         InfoBlock(icon = Icons.Outlined.WarningAmber, title = "주의", body = it, accent = Tokens.Warning, iconTint = Tokens.WarningText)
-    }
-
-    // ---- Region rule highlight ----------------------------------------------
-    if (regionLabel != null) {
-        Spacer(Modifier.height(Tokens.Sp16))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(Tokens.Radius16))
-                .background(Tokens.PrimaryGreenSoft)
-                .padding(Tokens.Sp12),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(Tokens.PrimaryGreen),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-            Spacer(Modifier.width(Tokens.Sp12))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    "$regionLabel 지역 규칙",
-                    fontWeight = FontWeight.Bold,
-                    color = Tokens.PrimaryGreen,
-                    fontSize = Tokens.SectionSize,
-                )
-                Spacer(Modifier.height(Tokens.Sp4))
-                Text(
-                    "지정된 분리수거 봉투 또는 용기에 배출하세요. 자세한 일정은 지자체 공지를 확인해주세요.",
-                    fontSize = Tokens.CaptionSize,
-                    color = Tokens.PrimaryGreen,
-                )
-            }
-        }
     }
 
     Spacer(Modifier.height(Tokens.Sp16))
@@ -217,19 +202,25 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "출처 : ",
+            "정보 제공 : ",
             fontSize = 11.sp,
             color = Tokens.TextSecondary.copy(alpha = 0.8f),
             fontWeight = FontWeight.Medium
         )
         androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(id = app.trashai.R.drawable.mois_logo),
+            contentDescription = "행정안전부 로고",
+            modifier = Modifier.height(14.dp)
+        )
+        Spacer(Modifier.width(Tokens.Sp6))
+        androidx.compose.foundation.Image(
             painter = androidx.compose.ui.res.painterResource(id = app.trashai.R.drawable.gov_logo),
-            contentDescription = "기관 로고",
-            modifier = Modifier.height(16.dp)
+            contentDescription = "기후에너지환경부 로고",
+            modifier = Modifier.height(14.dp)
         )
         Spacer(Modifier.width(Tokens.Sp6))
         Text(
-            rule.sourceName,
+            "생활폐기물 분리배출 누리집",
             fontSize = 11.sp,
             color = Tokens.TextSecondary,
             fontWeight = FontWeight.Bold
@@ -296,9 +287,9 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
         .map { it.trim().replaceFirst(bulletRegex, "") }
         .filter { it.isNotEmpty() }
 
-    Column(
+    Row(
         modifier = modifier,
-        horizontalAlignment = Alignment.Start
+        verticalAlignment = Alignment.Top
     ) {
         Box(
             modifier = Modifier
@@ -314,25 +305,24 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
                 fontSize = 11.sp,
             )
         }
-        Spacer(Modifier.height(Tokens.Sp8))
+        Spacer(Modifier.width(Tokens.Sp8))
         
-        if (lines.size <= 1) {
-            // Case 1: Single item - No dot, just text
-            Text(
-                text = lines.firstOrNull() ?: "",
-                color = Tokens.TextPrimary,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
-                textAlign = TextAlign.Start,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 4.dp) // Ensure padding from dividers
-            )
-        } else {
-            // Case 2: Multiple items - Perfect hanging indent with fixed bullet width
-            Column(
-                verticalArrangement = Arrangement.spacedBy(Tokens.Sp4),
-                modifier = Modifier.padding(horizontal = 4.dp)
-            ) {
+        Column(modifier = Modifier.weight(1f)) {
+            if (lines.size <= 1) {
+                // Case 1: Single item - No dot, just text
+                Text(
+                    text = lines.firstOrNull() ?: "",
+                    color = Tokens.TextPrimary,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                    textAlign = TextAlign.Start,
+                    fontWeight = FontWeight.Bold
+                )
+            } else {
+                // Case 2: Multiple items - Perfect hanging indent with fixed bullet width
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Tokens.Sp4)
+                ) {
                 lines.forEach { line ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -357,9 +347,10 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
                     }
                 }
             }
-        }
-    }
-}
+        } // closes if-else
+    } // closes Column(modifier = Modifier.weight(1f))
+} // closes StepColumn Row
+} // closes StepColumn function
 
 @Composable
 private fun InfoBlock(
