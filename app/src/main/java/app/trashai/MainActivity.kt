@@ -20,6 +20,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -218,25 +219,27 @@ private fun TrashAiApp() {
             val transformState = rememberTransformableState { zoomChange, _, _ ->
                 scale = (scale * zoomChange).coerceIn(1f, 3f)
             }
-            val scrollState = rememberScrollState()
+            val verticalScrollState = rememberScrollState()
+            val horizontalScrollState = rememberScrollState()
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .transformable(state = transformState)
             ) {
-                // 스크롤 영역 (확대/축소 및 실제 높이 반영)
+                // 스크롤 영역 (상하/좌우 모두 지원하여 확대 시 자유로운 이동 가능)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(scrollState)
+                        .verticalScroll(verticalScrollState)
+                        .horizontalScroll(horizontalScrollState)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .layout { measurable, constraints ->
                                 val placeable = measurable.measure(constraints)
-                                val width = placeable.width
+                                val width = (placeable.width * scale).toInt()
                                 val height = (placeable.height * scale).toInt()
                                 layout(width, height) {
                                     placeable.placeRelative(0, 0)
@@ -245,7 +248,7 @@ private fun TrashAiApp() {
                             .graphicsLayer(
                                 scaleX = scale,
                                 scaleY = scale,
-                                transformOrigin = TransformOrigin(0.5f, 0f)
+                                transformOrigin = TransformOrigin(0f, 0f)
                             )
                             .padding(Tokens.Sp24)
                     ) {
@@ -264,7 +267,7 @@ private fun TrashAiApp() {
 
                 // Floating Scroll Arrow Button (화면 하단 고정 배치)
                 if (state.sheetState == SheetState.Idle) {
-                    val isAtBottom = scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue - 20
+                    val isAtBottom = verticalScrollState.maxValue > 0 && verticalScrollState.value >= verticalScrollState.maxValue - 20
                     val infiniteTransition = rememberInfiniteTransition(label = "floating_arrow")
                     val arrowOffset by infiniteTransition.animateFloat(
                         initialValue = 0f,
@@ -287,9 +290,9 @@ private fun TrashAiApp() {
                             onClick = {
                                 scope.launch {
                                     if (isAtBottom) {
-                                        scrollState.animateScrollTo(0)
+                                        verticalScrollState.animateScrollTo(0)
                                     } else {
-                                        scrollState.animateScrollTo(scrollState.maxValue)
+                                        verticalScrollState.animateScrollTo(verticalScrollState.maxValue)
                                     }
                                 }
                             },
