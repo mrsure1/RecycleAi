@@ -151,18 +151,6 @@ fun ItemRuleBody(
                     lineHeight = 22.sp,
                     fontWeight = FontWeight.Medium
                 )
-                if (ordSummary != null) {
-                    Spacer(Modifier.height(Tokens.Sp4))
-                    HorizontalDivider(color = Tokens.Divider.copy(alpha = 0.5f))
-                    Spacer(Modifier.height(Tokens.Sp4))
-                    Text(
-                        text = "💡 지자체 조례 요약:\n" + ordSummary.take(150) + if (ordSummary.length > 150) "..." else "",
-                        color = Tokens.TextSecondary.copy(alpha = 0.8f),
-                        fontSize = 11.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight.Normal
-                    )
-                }
             }
         }
     }
