@@ -26,7 +26,12 @@ import app.trashai.data.CommonGuide
 import app.trashai.data.ItemRule
 
 @Composable
-fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null, commonGuide: CommonGuide? = null) {
+fun ItemRuleBody(
+    rule: ItemRule, 
+    regionLabel: String? = null, 
+    commonGuide: CommonGuide? = null,
+    regionOrdinance: app.trashai.data.RegionOrdinance? = null
+) {
     // ---- Title row -----------------------------------------------------------
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -119,13 +124,46 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null, commonGuide: Commo
                 .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
                 .padding(Tokens.Sp16)
         ) {
-            Text(
-                text = "⏰ 배출 시간: 해당 지자체(또는 아파트) 안내 시간 참조\n🗑️ 배출 장소: 정해진 배출 수거함 또는 문 앞",
-                color = Tokens.TextSecondary,
-                fontSize = 13.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight.Medium
-            )
+            val ordSummary = regionOrdinance?.appSummary
+            val timeText = if (ordSummary != null && ordSummary.contains("일몰")) {
+                "⏰ 배출 시간: 일몰 후부터 일출 전까지 배출"
+            } else {
+                "⏰ 배출 시간: 해당 지자체 안내 시간 참조"
+            }
+            val placeText = if (ordSummary != null && ordSummary.contains("지정된 장소")) {
+                "🗑️ 배출 장소: 내 집 앞 또는 지정된 거점 수거 장소"
+            } else {
+                "🗑️ 배출 장소: 정해진 배출 수거함 또는 문 앞"
+            }
+            
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = timeText,
+                    color = Tokens.TextSecondary,
+                    fontSize = 13.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = placeText,
+                    color = Tokens.TextSecondary,
+                    fontSize = 13.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                if (ordSummary != null) {
+                    Spacer(Modifier.height(Tokens.Sp4))
+                    HorizontalDivider(color = Tokens.Divider.copy(alpha = 0.5f))
+                    Spacer(Modifier.height(Tokens.Sp4))
+                    Text(
+                        text = "💡 지자체 조례 요약:\n" + ordSummary.take(150) + if (ordSummary.length > 150) "..." else "",
+                        color = Tokens.TextSecondary.copy(alpha = 0.8f),
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+            }
         }
     }
 

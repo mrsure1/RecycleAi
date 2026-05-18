@@ -381,7 +381,7 @@ private fun BottomCardContent(
             is SheetState.Loading -> AnimatedLoadingScreen(s.message)
 
             is SheetState.Item -> {
-                ItemRuleBody(s.rule, regionLabel = state.regionLabel, commonGuide = s.commonGuide)
+                ItemRuleBody(s.rule, regionLabel = state.regionLabel, commonGuide = s.commonGuide, regionOrdinance = state.regionOrdinance)
                 if (s.alternates.isNotEmpty()) {
                     Spacer(Modifier.height(Tokens.Sp16))
                     ClarificationChips(

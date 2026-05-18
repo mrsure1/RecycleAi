@@ -7,6 +7,7 @@ import app.trashai.data.KeywordHit
 import app.trashai.data.WasteGuideDb
 import app.trashai.data.commonGuideById
 import app.trashai.data.itemById
+import app.trashai.data.ordinanceByRegion
 import app.trashai.data.searchByKeywords
 import app.trashai.gemini.GeminiClient
 import app.trashai.gemini.GeminiResult
@@ -29,6 +30,7 @@ data class AppUiState(
     /** JPEG of the most recent capture (cropped or full). Shown in the top half
      *  whenever a result sheet is open, replacing the live preview. */
     val lastCapturedJpeg: ByteArray? = null,
+    val regionOrdinance: app.trashai.data.RegionOrdinance? = null,
 )
 
 sealed interface SheetState {
@@ -75,10 +77,13 @@ class AppState(private val appContext: Context) {
 
     fun preloadDb() {
         scope.launch {
-            runCatching { WasteGuideDb.open(appContext) }
-                .onFailure { e ->
-                    _state.update { it.copy(sheetState = SheetState.Error(e.message ?: "DB open failed")) }
-                }
+            runCatching { 
+                val db = WasteGuideDb.open(appContext)
+                val ord = db.ordinanceByRegion("경기도", "고양시 일산동구")
+                _state.update { it.copy(regionOrdinance = ord) }
+            }.onFailure { e ->
+                _state.update { it.copy(sheetState = SheetState.Error(e.message ?: "DB open failed")) }
+            }
         }
     }
 
@@ -147,22 +152,28 @@ class AppState(private val appContext: Context) {
         scope.launch {
             _state.update { it.copy(regionLoading = true) }
             val r = LocationHelper.fetchCurrentRegion(appContext)
-            _state.update { s ->
-                when (r) {
-                    is LocationHelper.Result.Ok -> s.copy(regionLabel = r.display, regionLoading = false)
-                    LocationHelper.Result.PermissionDenied -> s.copy(
-                        regionLoading = false,
-                        sheetState = SheetState.Error("위치 권한이 거부되었습니다. 설정에서 허용해주세요."),
-                    )
-                    LocationHelper.Result.NoLocation -> s.copy(
-                        regionLoading = false,
-                        sheetState = SheetState.Error("현재 위치를 가져오지 못했습니다. GPS가 켜져 있는지 확인하세요."),
-                    )
-                    is LocationHelper.Result.Error -> s.copy(
-                        regionLoading = false,
-                        sheetState = SheetState.Error("위치 오류: ${r.message}"),
-                    )
+            when (r) {
+                is LocationHelper.Result.Ok -> {
+                    val ord = withContext(Dispatchers.IO) {
+                        runCatching {
+                            val db = WasteGuideDb.open(appContext)
+                            db.ordinanceByRegion(r.sido, r.locality + " " + r.subLocality)
+                        }.getOrNull()
+                    }
+                    _state.update { it.copy(regionLabel = r.display, regionLoading = false, regionOrdinance = ord) }
                 }
+                LocationHelper.Result.PermissionDenied -> _state.update { s -> s.copy(
+                    regionLoading = false,
+                    sheetState = SheetState.Error("위치 권한이 거부되었습니다. 설정에서 허용해주세요."),
+                )}
+                LocationHelper.Result.NoLocation -> _state.update { s -> s.copy(
+                    regionLoading = false,
+                    sheetState = SheetState.Error("현재 위치를 가져오지 못했습니다. GPS가 켜져 있는지 확인하세요."),
+                )}
+                is LocationHelper.Result.Error -> _state.update { s -> s.copy(
+                    regionLoading = false,
+                    sheetState = SheetState.Error("위치 오류: ${r.message}"),
+                )}
             }
         }
     }

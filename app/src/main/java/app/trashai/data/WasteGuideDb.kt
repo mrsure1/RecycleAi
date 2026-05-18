@@ -141,6 +141,53 @@ fun SQLiteDatabase.commonGuideById(guideId: String): CommonGuide? =
         }
     }.getOrNull()
 
+data class RegionOrdinance(
+    val regionId: String,
+    val sidoName: String,
+    val sigunguName: String,
+    val ordinanceTitle: String,
+    val ordinanceText: String,
+    val appSummary: String?,
+    val sourceName: String,
+    val sourceUrl: String,
+)
+
+private fun android.database.Cursor.toRegionOrdinance() = RegionOrdinance(
+    regionId = getString(0),
+    sidoName = getString(1),
+    sigunguName = getString(2),
+    ordinanceTitle = getString(3),
+    ordinanceText = getString(4),
+    appSummary = getString(5),
+    sourceName = getString(6),
+    sourceUrl = getString(7),
+)
+
+fun SQLiteDatabase.ordinanceByRegion(sido: String, sigungu: String): RegionOrdinance? {
+    val cleanSigungu = sigungu.replace("특별시", "").replace("광역시", "").replace("특례시", "").trim()
+    val parts = cleanSigungu.split(" ").filter { it.isNotBlank() }
+    val candidates = parts.reversed() + cleanSigungu + sido
+    
+    for (cand in candidates) {
+        if (cand.isBlank()) continue
+        val res = runCatching {
+            rawQuery(
+                """
+                SELECT region_id, sido_name, sigungu_name, ordinance_title, ordinance_text, app_summary, source_name, source_url
+                FROM app_region_ordinance
+                WHERE sigungu_name LIKE ? OR sido_name LIKE ?
+                LIMIT 1
+                """,
+                arrayOf("%$cand%", "%$cand%")
+            ).use { c ->
+                if (c.moveToFirst()) c.toRegionOrdinance() else null
+            }
+        }.getOrNull()
+        if (res != null) return res
+    }
+    return null
+}
+
 /**
  * Search app_search_keyword by exact or LIKE match (Korean strings expected).
  * Returns top hits ordered by weight desc, then keyword length asc (more specific first).
