@@ -84,66 +84,27 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null, commonGuide: Commo
         .filter { it.length >= 2 }
         .take(5)
         
-    if (steps.size <= 2) {
-        // Case 1: 1~2개일 때 가로 배치
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Tokens.Sp8)
-        ) {
-            steps.forEachIndexed { i, step ->
-                StepColumn(
-                    number = i + 1, 
-                    body = step, 
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .shadow(
-                            elevation = 2.dp,
-                            shape = RoundedCornerShape(Tokens.Radius12),
-                            spotColor = Color(0x1A000000),
-                            ambientColor = Color(0x0A000000)
-                        )
-                        .background(Tokens.Surface, RoundedCornerShape(Tokens.Radius12))
-                        .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
-                        .padding(Tokens.Sp16)
-                )
-                if (i < steps.size - 1) {
-                    Icon(
-                        imageVector = Icons.Outlined.ChevronRight,
-                        contentDescription = "다음 단계",
-                        tint = Tokens.Primary,
-                        modifier = Modifier.size(24.dp)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Tokens.Sp6)
+    ) {
+        steps.forEachIndexed { i, step ->
+            StepColumn(
+                number = i + 1, 
+                body = step, 
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 2.dp,
+                        shape = RoundedCornerShape(Tokens.Radius12),
+                        spotColor = Color(0x1A000000),
+                        ambientColor = Color(0x0A000000)
                     )
-                }
-            }
-        }
-    } else {
-        // Case 2: 3개 이상일 때 세로 배치 (화살표 제거 및 간격 최소화)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Tokens.Sp6)
-        ) {
-            steps.forEachIndexed { i, step ->
-                StepColumn(
-                    number = i + 1, 
-                    body = step, 
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(
-                            elevation = 2.dp,
-                            shape = RoundedCornerShape(Tokens.Radius12),
-                            spotColor = Color(0x1A000000),
-                            ambientColor = Color(0x0A000000)
-                        )
-                        .background(Tokens.Surface, RoundedCornerShape(Tokens.Radius12))
-                        .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
-                        .padding(horizontal = Tokens.Sp16, vertical = Tokens.Sp12)
-                )
-            }
+                    .background(Tokens.Surface, RoundedCornerShape(Tokens.Radius12))
+                    .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
+                    .padding(horizontal = Tokens.Sp16, vertical = Tokens.Sp12)
+            )
         }
     }
 
