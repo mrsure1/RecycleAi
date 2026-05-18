@@ -44,7 +44,7 @@ fun InfoSheetContent(
             Icon(
                 imageVector = Icons.Outlined.Info,
                 contentDescription = null,
-                tint = Tokens.PrimaryGreen,
+                tint = Tokens.Primary,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(Modifier.width(Tokens.Sp12))
@@ -82,7 +82,7 @@ fun InfoSheetContent(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(Tokens.Radius12))
-                        .background(if (isSelected) Tokens.PrimaryGreen else Color.Transparent)
+                        .background(if (isSelected) Tokens.Primary else Color.Transparent)
                         .clickable { selectedTab = tab }
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
@@ -170,7 +170,7 @@ private fun LegalSection(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = Tokens.PrimaryGreen,
+                tint = Tokens.Primary,
                 modifier = Modifier.size(18.dp)
             )
             Spacer(Modifier.width(Tokens.Sp8))

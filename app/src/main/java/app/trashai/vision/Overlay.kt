@@ -123,17 +123,17 @@ fun GestureOverlay(
                 }
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
-                // Detection boxes (auto-detected)
+                // Detection boxes (auto-detected) - 녹색 바운딩 박스
                 val mapped = mapAll(detsState.value, size.width, size.height)
                 for (m in mapped) {
-                    drawNeonBrackets(this, m.left, m.top, m.right, m.bottom)
+                    drawNeonBrackets(this, m.left, m.top, m.right, m.bottom, isCustomDrag = false)
                 }
-                // User drag rectangle
+                // User drag rectangle - 사용자가 직접 드래그한 영역은 주황색 네온 바운딩 박스
                 val s = dragStart; val e = dragEnd
                 if (s != null && e != null) {
                     val left = minOf(s.x, e.x); val top = minOf(s.y, e.y)
                     val right = maxOf(s.x, e.x); val bottom = maxOf(s.y, e.y)
-                    drawNeonBrackets(this, left, top, right, bottom)
+                    drawNeonBrackets(this, left, top, right, bottom, isCustomDrag = true)
                 }
             }
         }
@@ -163,8 +163,8 @@ fun GestureOverlay(
                                 dragStart = null; dragEnd = null
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2D5A27)),
-                    ) { Text("이 영역 분석") }
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100)), // 주황색 네온과 어울리는 다크 오렌지
+                    ) { Text("이 영역 분석", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold) }
                     OutlinedButton(
                         onClick = { dragStart = null; dragEnd = null },
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
@@ -197,7 +197,8 @@ private fun mapAll(detections: List<Detection>, canvasW: Float, canvasH: Float):
 
 private fun drawNeonBrackets(
     drawScope: DrawScope,
-    left: Float, top: Float, right: Float, bottom: Float
+    left: Float, top: Float, right: Float, bottom: Float,
+    isCustomDrag: Boolean = false
 ) {
     val length = minOf(60f, (right - left) / 3f, (bottom - top) / 3f).coerceAtLeast(10f)
     val radius = minOf(24f, length)
@@ -227,10 +228,12 @@ private fun drawNeonBrackets(
     path.quadraticBezierTo(left, bottom, left, bottom - radius)
     path.lineTo(left, bottom - length)
 
+    val primaryColor = if (isCustomDrag) NeonOrange else NeonGreen
+
     drawScope.apply {
         // 전체 박스는 너무 희미하지 않게 어느정도 가시성 확보
         drawRoundRect(
-            color = NeonGreen.copy(alpha = 0.5f),
+            color = primaryColor.copy(alpha = 0.5f),
             topLeft = Offset(left, top),
             size = Size(right - left, bottom - top),
             cornerRadius = CornerRadius(radius, radius),
@@ -239,7 +242,7 @@ private fun drawNeonBrackets(
         // 코너 부분 네온 효과 (두꺼운 반투명 선)
         drawPath(
             path = path,
-            color = NeonGreen.copy(alpha = 0.6f),
+            color = primaryColor.copy(alpha = 0.6f),
             style = Stroke(width = 20f, cap = StrokeCap.Round)
         )
         // 코너 부분 중앙 화이트 하이라이트 (굵은 라인)
@@ -252,4 +255,4 @@ private fun drawNeonBrackets(
 }
 
 private val NeonGreen = Color(0xFF7CFF6B)
-private val NeonGreenGlow = Color(0x667CFF6B)
+private val NeonOrange = Color(0xFFFF6D00) // 생동감 넘치는 주황색 네온 (Deep Neon Orange)

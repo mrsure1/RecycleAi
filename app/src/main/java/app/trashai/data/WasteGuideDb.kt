@@ -15,9 +15,20 @@ object WasteGuideDb {
         synchronized(this) {
             db?.let { return it }
             val file = File(context.filesDir, DB_FILENAME)
-            if (!file.exists()) {
-                context.assets.open(ASSET_NAME).use { input ->
-                    file.outputStream().use { output -> input.copyTo(output) }
+            var needsCopy = !file.exists()
+            if (file.exists()) {
+                runCatching {
+                    val assetSize = context.assets.open(ASSET_NAME).use { it.available().toLong() }
+                    if (file.length() != assetSize) {
+                        needsCopy = true
+                    }
+                }
+            }
+            if (needsCopy) {
+                runCatching {
+                    context.assets.open(ASSET_NAME).use { input ->
+                        file.outputStream().use { output -> input.copyTo(output) }
+                    }
                 }
             }
             val opened = SQLiteDatabase.openDatabase(
@@ -48,6 +59,17 @@ data class KeywordHit(
     val weight: Int,
 )
 
+data class CommonGuide(
+    val guideId: String,
+    val title: String,
+    val subtitle: String?,
+    val description: String,
+    val tableHeaders: List<String>?,
+    val tableRows: List<List<String>>?,
+    val ctaLabel: String?,
+    val ctaAction: String?,
+)
+
 private const val SELECT_RULE = """
     SELECT item_id, item_name, primary_category, discharge_method,
            feature_text, caution_text, app_summary, source_name, source_url
@@ -66,6 +88,39 @@ private fun android.database.Cursor.toItemRule() = ItemRule(
     sourceUrl = getString(8),
 )
 
+private fun android.database.Cursor.toCommonGuide(): CommonGuide {
+    val headersJson = getString(4)
+    val rowsJson = getString(5)
+
+    val headers = runCatching {
+        if (headersJson != null) {
+            val arr = org.json.JSONArray(headersJson)
+            List(arr.length()) { arr.getString(it) }
+        } else null
+    }.getOrNull()
+
+    val rows = runCatching {
+        if (rowsJson != null) {
+            val arr = org.json.JSONArray(rowsJson)
+            List(arr.length()) { i ->
+                val sub = arr.getJSONArray(i)
+                List(sub.length()) { j -> sub.getString(j) }
+            }
+        } else null
+    }.getOrNull()
+
+    return CommonGuide(
+        guideId = getString(0),
+        title = getString(1),
+        subtitle = getString(2),
+        description = getString(3),
+        tableHeaders = headers,
+        tableRows = rows,
+        ctaLabel = getString(6),
+        ctaAction = getString(7),
+    )
+}
+
 fun SQLiteDatabase.firstItemRule(): ItemRule? =
     rawQuery("$SELECT_RULE ORDER BY item_name LIMIT 1", null).use { c ->
         if (c.moveToFirst()) c.toItemRule() else null
@@ -75,6 +130,16 @@ fun SQLiteDatabase.itemById(itemId: String): ItemRule? =
     rawQuery("$SELECT_RULE WHERE item_id = ? LIMIT 1", arrayOf(itemId)).use { c ->
         if (c.moveToFirst()) c.toItemRule() else null
     }
+
+fun SQLiteDatabase.commonGuideById(guideId: String): CommonGuide? =
+    runCatching {
+        rawQuery(
+            "SELECT guide_id, title, subtitle, description, table_headers, table_rows, cta_label, cta_action FROM app_common_guide WHERE guide_id = ? LIMIT 1",
+            arrayOf(guideId)
+        ).use { c ->
+            if (c.moveToFirst()) c.toCommonGuide() else null
+        }
+    }.getOrNull()
 
 /**
  * Search app_search_keyword by exact or LIKE match (Korean strings expected).

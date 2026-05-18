@@ -12,84 +12,52 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Chat
-import androidx.compose.material.icons.outlined.EnergySavingsLeaf
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.outlined.Analytics
-import androidx.compose.material.icons.outlined.GpsFixed
-import androidx.compose.material.icons.outlined.Recycling
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.trashai.ui.ItemRuleBody
-import app.trashai.ui.InfoSheetContent
-import app.trashai.ui.Tokens
 import app.trashai.clarify.ClarificationChips
+import app.trashai.ui.CommonGuideSection
+import app.trashai.ui.InfoSheetContent
+import app.trashai.ui.ItemRuleBody
+import app.trashai.ui.Tokens
 import app.trashai.vision.CameraScreen
 import kotlinx.coroutines.launch
+import kotlin.math.cos
+import kotlin.math.sin
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -175,7 +143,6 @@ private fun TrashAiApp() {
                         .padding(horizontal = 14.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Detection-style Icon Box with Brackets & Camera
                     Box(
                         modifier = Modifier
                             .size(28.dp)
@@ -183,7 +150,6 @@ private fun TrashAiApp() {
                             .background(Color.White.copy(alpha = 0.9f)),
                         contentAlignment = Alignment.Center
                     ) {
-                        // 1. Camera icon maximized (Blackish)
                         Icon(
                             imageVector = Icons.Filled.CameraAlt,
                             contentDescription = null,
@@ -191,8 +157,7 @@ private fun TrashAiApp() {
                             modifier = Modifier.size(20.dp)
                         )
                         
-                        // 2. Neon Brackets expanded to absolute edges
-                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                        Canvas(modifier = Modifier.fillMaxSize()) {
                             val w = size.width; val h = size.height
                             val len = 10.dp.toPx()
                             val rad = 4.dp.toPx()
@@ -210,9 +175,7 @@ private fun TrashAiApp() {
                                 moveTo(len, h); lineTo(rad, h); quadraticBezierTo(0f, h, 0f, h - rad); lineTo(0f, h - len)
                             }
                             
-                            // Green Glow (Neon)
                             drawPath(p, color = Tokens.NeonGreen, style = Stroke(width = strokeOuter, cap = StrokeCap.Round))
-                            // White Highlight
                             drawPath(p, color = Color.White, style = Stroke(width = strokeInner, cap = StrokeCap.Round))
                         }
                     }
@@ -233,44 +196,102 @@ private fun TrashAiApp() {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            color = Tokens.Surface.copy(alpha = 0.9f), // Subtle Glassmorphism base
+            color = Tokens.Surface.copy(alpha = 0.95f),
             shape = RoundedCornerShape(topStart = Tokens.Radius24, topEnd = Tokens.Radius24),
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,
         ) {
             var scale by remember { mutableFloatStateOf(1f) }
-            var offset by remember { mutableStateOf(Offset.Zero) }
-            val transformState = rememberTransformableState { zoomChange, panChange, _ ->
+            val transformState = rememberTransformableState { zoomChange, _, _ ->
                 scale = (scale * zoomChange).coerceIn(1f, 3f)
-                offset = if (scale == 1f) Offset.Zero else offset + panChange
             }
+            val scrollState = rememberScrollState()
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .transformable(state = transformState)
             ) {
-                Column(
+                // 스크롤 영역 (확대/축소 및 실제 높이 반영)
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .graphicsLayer(
-                            scaleX = scale,
-                            scaleY = scale,
-                            translationX = offset.x,
-                            translationY = offset.y
-                        )
-                        .padding(Tokens.Sp24)
+                        .verticalScroll(scrollState)
                 ) {
-                    BottomCardContent(
-                        state = state,
-                        onPickItem = { viewModel.pickItem(it) },
-                        onConfirmYes = { viewModel.confirmYes() },
-                        onConfirmNo = { viewModel.confirmNo() },
-                        onAskAi = { viewModel.startAskUser() },
-                        onSubmitText = { viewModel.submitUserText(it) },
-                        onDismiss = { viewModel.dismissSheet() },
-                        onShowInfo = { viewModel.showInfo(it) },
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .layout { measurable, constraints ->
+                                val placeable = measurable.measure(constraints)
+                                val width = placeable.width
+                                val height = (placeable.height * scale).toInt()
+                                layout(width, height) {
+                                    placeable.placeRelative(0, 0)
+                                }
+                            }
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                transformOrigin = TransformOrigin(0.5f, 0f)
+                            )
+                            .padding(Tokens.Sp24)
+                    ) {
+                        BottomCardContent(
+                            state = state,
+                            onPickItem = { viewModel.pickItem(it) },
+                            onConfirmYes = { viewModel.confirmYes() },
+                            onConfirmNo = { viewModel.confirmNo() },
+                            onAskAi = { viewModel.startAskUser() },
+                            onSubmitText = { viewModel.submitUserText(it) },
+                            onDismiss = { viewModel.dismissSheet() },
+                            onShowInfo = { viewModel.showInfo(it) },
+                        )
+                    }
+                }
+
+                // Floating Scroll Arrow Button (화면 하단 고정 배치)
+                if (state.sheetState == SheetState.Idle) {
+                    val isAtBottom = scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue - 20
+                    val infiniteTransition = rememberInfiniteTransition(label = "floating_arrow")
+                    val arrowOffset by infiniteTransition.animateFloat(
+                        initialValue = 0f,
+                        targetValue = if (isAtBottom) -10f else 10f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(800, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "arrowOffset"
                     )
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 16.dp, bottom = 16.dp)
+                            .graphicsLayer { translationY = arrowOffset },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        SmallFloatingActionButton(
+                            onClick = {
+                                scope.launch {
+                                    if (isAtBottom) {
+                                        scrollState.animateScrollTo(0)
+                                    } else {
+                                        scrollState.animateScrollTo(scrollState.maxValue)
+                                    }
+                                }
+                            },
+                            containerColor = Tokens.Primary,
+                            contentColor = Color.White,
+                            shape = CircleShape,
+                            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isAtBottom) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                                contentDescription = if (isAtBottom) "위로 스크롤" else "아래로 스크롤",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -353,181 +374,137 @@ private fun BottomCardContent(
     onDismiss: () -> Unit,
     onShowInfo: (String) -> Unit,
 ) {
-    val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope()
+    Column(modifier = Modifier.fillMaxWidth()) {
+        when (val s = state.sheetState) {
+            SheetState.Idle -> IdleCardContent(onShowInfo)
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-            when (val s = state.sheetState) {
-                SheetState.Idle -> IdleCardContent(onShowInfo)
+            is SheetState.Loading -> AnimatedLoadingScreen(s.message)
 
-                is SheetState.Loading -> AnimatedLoadingScreen(s.message)
-
-                is SheetState.Item -> {
-                    ItemRuleBody(s.rule, regionLabel = state.regionLabel)
-                    if (s.alternates.isNotEmpty()) {
-                        Spacer(Modifier.height(Tokens.Sp16))
-                        ClarificationChips(
-                            candidates = s.alternates,
-                            onPick = { onPickItem(it.itemId) },
-                            headline = "다른 후보",
-                            hint = null,
-                        )
-                    }
-                    Spacer(Modifier.height(Tokens.Sp24))
-                    CorrectionInput(onSubmit = onSubmitText)
-                }
-
-                is SheetState.Clarify -> {
+            is SheetState.Item -> {
+                ItemRuleBody(s.rule, regionLabel = state.regionLabel, commonGuide = s.commonGuide)
+                if (s.alternates.isNotEmpty()) {
+                    Spacer(Modifier.height(Tokens.Sp16))
                     ClarificationChips(
-                        candidates = s.candidates,
+                        candidates = s.alternates,
                         onPick = { onPickItem(it.itemId) },
+                        headline = "다른 후보",
+                        hint = null,
                     )
-                    Spacer(Modifier.height(Tokens.Sp16))
-                    OutlinedButton(
-                        onClick = onAskAi,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(Tokens.Radius12),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Tokens.PrimaryGreen),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Tokens.PrimaryGreen)
-                    ) {
-                        Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(Tokens.Sp8))
-                        Text("AI에게 직접 설명하기", fontWeight = FontWeight.SemiBold)
-                    }
                 }
+                Spacer(Modifier.height(Tokens.Sp24))
+                CorrectionInput(onSubmit = onSubmitText)
+            }
 
-                is SheetState.Confirming -> {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier.size(36.dp).clip(CircleShape).background(Tokens.PrimaryGreenSoft),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(Icons.Outlined.HelpOutline, contentDescription = null, tint = Tokens.PrimaryGreen, modifier = Modifier.size(20.dp))
-                        }
-                        Spacer(Modifier.width(Tokens.Sp12))
-                        Column {
-                            Text("이게 맞나요?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
-                            Spacer(Modifier.height(Tokens.Sp4))
-                            Text("${s.sourceLabel} · ${s.rule.itemName}", fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
-                        }
-                    }
-                    Spacer(Modifier.height(Tokens.Sp16))
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Tokens.Radius12)).background(Tokens.SurfaceMuted).padding(Tokens.Sp16)
-                    ) {
-                        s.rule.appSummary?.let { Text(it, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
-                        s.rule.dischargeMethod?.let {
-                            Spacer(Modifier.height(Tokens.Sp6))
-                            Text(it, color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, lineHeight = 16.sp)
-                        }
-                    }
-                    Spacer(Modifier.height(Tokens.Sp16))
-
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = onConfirmNo) { Text("아니에요", color = Tokens.TextSecondary, fontWeight = FontWeight.SemiBold) }
-                        Spacer(Modifier.width(Tokens.Sp8))
-                        Button(
-                            onClick = onConfirmYes,
-                            colors = ButtonDefaults.buttonColors(containerColor = Tokens.PrimaryGreen),
-                            shape = RoundedCornerShape(Tokens.Radius12),
-                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 12.dp)
-                        ) {
-                            Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(Tokens.Sp8))
-                            Text("네, 맞아요", fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-
-                is SheetState.AskUser -> AskUserContent(s, onSubmitText, onDismiss)
-
-                is SheetState.Info -> InfoSheetContent(s.initialTab, onDismiss)
-
-                is SheetState.Empty -> {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier.size(36.dp).clip(CircleShape).background(Color(0xFFFFF3E0)),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(Icons.Outlined.SearchOff, contentDescription = null, tint = Color(0xFFB26A00), modifier = Modifier.size(20.dp))
-                        }
-                        Spacer(Modifier.width(Tokens.Sp12))
-                        Column {
-                            Text("매칭되는 품목이 없어요", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
-                            Spacer(Modifier.height(Tokens.Sp4))
-                            Text(s.detail, fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
-                        }
-                    }
-                    Spacer(Modifier.height(Tokens.Sp24))
-                    CorrectionInput(onSubmit = onSubmitText)
-                }
-
-                is SheetState.Error -> {
-                    val isInfo = s.message.startsWith("✅")
-                    val tintColor = if (isInfo) Tokens.PrimaryGreen else Tokens.Danger
-                    val bgColor = if (isInfo) Tokens.PrimaryGreenSoft else Color(0xFFFFEBEE)
-                    val icon = if (isInfo) Icons.Outlined.Info else Icons.Outlined.ErrorOutline
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier.size(36.dp).clip(CircleShape).background(bgColor),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(icon, contentDescription = null, tint = tintColor, modifier = Modifier.size(20.dp))
-                        }
-                        Spacer(Modifier.width(Tokens.Sp12))
-                        Text(if (isInfo) "정보" else "오류", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = tintColor)
-                    }
-                    Spacer(Modifier.height(Tokens.Sp16))
-                    Text(s.message, color = Tokens.TextPrimary, fontSize = Tokens.BodySize)
+            is SheetState.Clarify -> {
+                ClarificationChips(
+                    candidates = s.candidates,
+                    onPick = { onPickItem(it.itemId) },
+                )
+                Spacer(Modifier.height(Tokens.Sp16))
+                OutlinedButton(
+                    onClick = onAskAi,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(Tokens.Radius12),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Tokens.Primary),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Tokens.Primary)
+                ) {
+                    Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(Tokens.Sp8))
+                    Text("AI에게 직접 설명하기", fontWeight = FontWeight.SemiBold)
                 }
             }
-        }
 
-        // Floating Scroll Arrow Button (첫 화면 Idle 상태일 때 표시, 스크롤 위치에 따라 방향 전환)
-        if (state.sheetState == SheetState.Idle) {
-            val isAtBottom = scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue - 20
-            val infiniteTransition = rememberInfiniteTransition(label = "floating_arrow")
-            val arrowOffset by infiniteTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = if (isAtBottom) -10f else 10f, // 위로 향할 때는 위쪽으로 바운스!
-                animationSpec = infiniteRepeatable(
-                    animation = tween(800, easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "arrowOffset"
-            )
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 8.dp, bottom = 8.dp)
-                    .graphicsLayer { translationY = arrowOffset },
-                contentAlignment = Alignment.Center
-            ) {
-                androidx.compose.material3.SmallFloatingActionButton(
-                    onClick = {
-                        scope.launch {
-                            if (isAtBottom) {
-                                scrollState.animateScrollTo(0)
-                            } else {
-                                scrollState.animateScrollTo(scrollState.maxValue)
-                            }
-                        }
-                    },
-                    containerColor = Tokens.PrimaryGreen,
-                    contentColor = Color.White,
-                    shape = CircleShape,
-                    elevation = androidx.compose.material3.FloatingActionButtonDefaults.elevation(defaultElevation = 6.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isAtBottom) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
-                        contentDescription = if (isAtBottom) "위로 스크롤" else "아래로 스크롤",
-                        modifier = Modifier.size(24.dp)
-                    )
+            is SheetState.Confirming -> {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier.size(36.dp).clip(CircleShape).background(Tokens.PrimarySoft),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Outlined.HelpOutline, contentDescription = null, tint = Tokens.Primary, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(Tokens.Sp12))
+                    Column {
+                        Text("이게 맞나요?", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
+                        Spacer(Modifier.height(Tokens.Sp4))
+                        Text("${s.sourceLabel} · ${s.rule.itemName}", fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
+                    }
                 }
+                Spacer(Modifier.height(Tokens.Sp16))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Tokens.Radius12)).background(Tokens.SurfaceMuted).padding(Tokens.Sp16)
+                ) {
+                    s.rule.appSummary?.let { Text(it, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
+                    s.rule.dischargeMethod?.let {
+                        Spacer(Modifier.height(Tokens.Sp6))
+                        Text(it, color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, lineHeight = 16.sp)
+                    }
+                }
+                Spacer(Modifier.height(Tokens.Sp16))
+
+                // E-순환거버넌스 공통 안내 렌더링 추가
+                s.commonGuide?.let { guide ->
+                    CommonGuideSection(guide = guide)
+                    Spacer(Modifier.height(Tokens.Sp16))
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onConfirmNo) { Text("아니에요", color = Tokens.TextSecondary, fontWeight = FontWeight.SemiBold) }
+                    Spacer(Modifier.width(Tokens.Sp8))
+                    Button(
+                        onClick = onConfirmYes,
+                        colors = ButtonDefaults.buttonColors(containerColor = Tokens.Primary),
+                        shape = RoundedCornerShape(Tokens.Radius12),
+                        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                    ) {
+                        Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(Tokens.Sp8))
+                        Text("네, 맞아요", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            is SheetState.AskUser -> AskUserContent(s, onSubmitText, onDismiss)
+
+            is SheetState.Info -> InfoSheetContent(s.initialTab, onDismiss)
+
+            is SheetState.Empty -> {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier.size(36.dp).clip(CircleShape).background(Color(0xFFFFF3E0)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Outlined.SearchOff, contentDescription = null, tint = Color(0xFFB26A00), modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(Tokens.Sp12))
+                    Column {
+                        Text("매칭되는 품목이 없어요", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
+                        Spacer(Modifier.height(Tokens.Sp4))
+                        Text(s.detail, fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
+                    }
+                }
+                Spacer(Modifier.height(Tokens.Sp24))
+                CorrectionInput(onSubmit = onSubmitText)
+            }
+
+            is SheetState.Error -> {
+                val isInfo = s.message.startsWith("✅")
+                val tintColor = if (isInfo) Tokens.Primary else Tokens.DangerText
+                val bgColor = if (isInfo) Tokens.PrimarySoft else Tokens.Danger
+                val icon = if (isInfo) Icons.Outlined.Info else Icons.Outlined.ErrorOutline
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier.size(36.dp).clip(CircleShape).background(bgColor),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(icon, contentDescription = null, tint = tintColor, modifier = Modifier.size(20.dp))
+                    }
+                    Spacer(Modifier.width(Tokens.Sp12))
+                    Text(if (isInfo) "정보" else "오류", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = tintColor)
+                }
+                Spacer(Modifier.height(Tokens.Sp16))
+                Text(s.message, color = Tokens.TextPrimary, fontSize = Tokens.BodySize)
             }
         }
     }
@@ -546,7 +523,6 @@ private fun CardHeader(title: String, subtitle: String?, accent: Color = Tokens.
 private fun AnimatedLoadingScreen(text: String) {
     val infiniteTransition = rememberInfiniteTransition(label = "ai_premium_loading")
     
-    // 1. Fast & Smooth Rotation for the Progress Arc
     val arcAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -557,7 +533,6 @@ private fun AnimatedLoadingScreen(text: String) {
         label = "arcAngle"
     )
 
-    // 2. Breathing Glow Scale for central text
     val breathingScale by infiniteTransition.animateFloat(
         initialValue = 0.95f,
         targetValue = 1.05f,
@@ -568,7 +543,6 @@ private fun AnimatedLoadingScreen(text: String) {
         label = "breathingScale"
     )
 
-    // 3. Dot Indicator Animation (0, 1, 2 점멸)
     val dotProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 3f,
@@ -580,11 +554,11 @@ private fun AnimatedLoadingScreen(text: String) {
     )
     val dotIndex = dotProgress.toInt()
 
-    // 톤앤매너에서 벗어난 눈에 띄고 화려한 네온 컬러 조합
+    // 다크 네이비 테마에 어울리는 고급스럽고 사이버틱한 블루/네이비 네온 컬러 조합
     val neonCyan = Color(0xFF00E5FF)
-    val electricBlue = Color(0xFF2979FF)
-    val hotMagenta = Color(0xFFFF007F)
-    val neonGreen = Color(0xFF00E676)
+    val electricBlue = Tokens.Accent
+    val darkNavy = Tokens.Primary
+    val neonGreen = Tokens.NeonGreen
 
     Column(
         modifier = Modifier
@@ -594,12 +568,10 @@ private fun AnimatedLoadingScreen(text: String) {
         verticalArrangement = Arrangement.Center
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.size(140.dp)) {
-            // Background Canvas for Dashed Track, Rotating Arc, and Particles
-            androidx.compose.foundation.Canvas(modifier = Modifier.size(130.dp)) {
+            Canvas(modifier = Modifier.size(130.dp)) {
                 val center = Offset(size.width / 2, size.height / 2)
                 val radius = (size.width / 2) * 0.75f
                 
-                // 1. Dashed Track Ring (점선 눈금 트랙)
                 drawCircle(
                     color = neonCyan.copy(alpha = 0.25f),
                     radius = radius,
@@ -610,26 +582,24 @@ private fun AnimatedLoadingScreen(text: String) {
                     center = center
                 )
                 
-                // 2. Rotating Progress Arc (빙글빙글 도는 굵고 화려한 아크)
-                val arcCutout = 240f // 240도 길이의 아크
+                val arcCutout = 240f
                 rotate(degrees = arcAngle) {
                     drawArc(
-                        brush = androidx.compose.ui.graphics.Brush.sweepGradient(
-                            colors = listOf(hotMagenta, electricBlue, neonCyan, hotMagenta),
+                        brush = Brush.sweepGradient(
+                            colors = listOf(darkNavy, electricBlue, neonCyan, darkNavy),
                             center = center
                         ),
                         startAngle = 0f,
                         sweepAngle = arcCutout,
                         useCenter = false,
                         style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round),
-                        size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
+                        size = Size(radius * 2, radius * 2),
                         topLeft = Offset(center.x - radius, center.y - radius)
                     )
 
-                    // 3. Glowing Dot at the leading edge of the arc
                     val leadingAngle = Math.toRadians(arcCutout.toDouble()).toFloat()
-                    val dotX = center.x + radius * kotlin.math.cos(leadingAngle)
-                    val dotY = center.y + radius * kotlin.math.sin(leadingAngle)
+                    val dotX = center.x + radius * cos(leadingAngle)
+                    val dotY = center.y + radius * sin(leadingAngle)
                     
                     drawCircle(
                         color = Color.White,
@@ -643,23 +613,19 @@ private fun AnimatedLoadingScreen(text: String) {
                     )
                 }
 
-                // 4. Floating / Rotating Particles (주변 파티클 점들)
                 rotate(degrees = -arcAngle * 0.5f) {
                     val pRadius1 = radius * 1.25f
                     val pRadius2 = radius * 1.4f
-                    // Particle 1 (Top Right)
                     drawCircle(
-                        color = hotMagenta,
+                        color = electricBlue,
                         radius = 2.5f.dp.toPx(),
                         center = Offset(center.x + pRadius1 * 0.7f, center.y - pRadius1 * 0.7f)
                     )
-                    // Particle 2 (Bottom Left)
                     drawCircle(
                         color = neonCyan,
                         radius = 3.dp.toPx(),
                         center = Offset(center.x - pRadius2 * 0.8f, center.y + pRadius2 * 0.5f)
                     )
-                    // Particle 3 (Top Left)
                     drawCircle(
                         color = neonGreen,
                         radius = 2.dp.toPx(),
@@ -668,7 +634,6 @@ private fun AnimatedLoadingScreen(text: String) {
                 }
             }
             
-            // Central Big "AI" Text (첨부 이미지처럼 중앙에 큰 AI 텍스트)
             Box(
                 modifier = Modifier
                     .size(64.dp)
@@ -681,7 +646,7 @@ private fun AnimatedLoadingScreen(text: String) {
                     text = "AI",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = neonGreen,
+                    color = Tokens.Primary,
                     modifier = Modifier.graphicsLayer {
                         scaleX = breathingScale
                         scaleY = breathingScale
@@ -692,7 +657,6 @@ private fun AnimatedLoadingScreen(text: String) {
 
         Spacer(Modifier.height(20.dp))
 
-        // AI Analyzing Text ("AI 분석중")
         Text(
             text = text,
             fontSize = 20.sp,
@@ -703,7 +667,6 @@ private fun AnimatedLoadingScreen(text: String) {
         
         Spacer(Modifier.height(4.dp))
         
-        // Subtitle ("잠시만 기다려 주세요...")
         Text(
             text = "잠시만 기다려 주세요...",
             fontSize = 13.sp,
@@ -713,7 +676,6 @@ private fun AnimatedLoadingScreen(text: String) {
 
         Spacer(Modifier.height(16.dp))
 
-        // Bottom 3 Dots Indicator (첨부 이미지의 하단 점멸 도트)
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -724,7 +686,7 @@ private fun AnimatedLoadingScreen(text: String) {
                     modifier = Modifier
                         .size(if (isActive) 8.dp else 6.dp)
                         .clip(CircleShape)
-                        .background(if (isActive) neonGreen else Tokens.Divider)
+                        .background(if (isActive) Tokens.Primary else Tokens.Divider)
                 )
             }
         }
@@ -734,99 +696,155 @@ private fun AnimatedLoadingScreen(text: String) {
 @Composable
 private fun IdleCardContent(onShowInfo: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // 1. Header with Professional Title
+        // 1. Premium Header Banner (AI 분석 대기 중)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = Tokens.Sp16)
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Tokens.Radius16))
+                .background(Tokens.PrimarySoft)
+                .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius16))
+                .padding(Tokens.Sp16)
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(46.dp)
                     .clip(RoundedCornerShape(Tokens.Radius12))
-                    .background(Tokens.PrimaryGreenSoft),
+                    .background(Tokens.RecycleGreenSoft),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.AutoAwesome,
+                    imageVector = Icons.Outlined.Recycling,
                     contentDescription = null,
-                    tint = Tokens.PrimaryGreen,
-                    modifier = Modifier.size(24.dp),
+                    tint = Tokens.RecycleGreen,
+                    modifier = Modifier.size(26.dp),
                 )
             }
             Spacer(Modifier.width(Tokens.Sp16))
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "AI 분석 대기 중",
-                    fontSize = 20.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Tokens.TextPrimary,
                     letterSpacing = (-0.5).sp
                 )
+                Spacer(Modifier.height(2.dp))
                 Text(
                     "사물을 카메라 중심에 맞춰주세요",
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     color = Tokens.TextSecondary,
+                    lineHeight = 16.sp
                 )
             }
+            // Pulse Indicator
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(Tokens.RecycleGreen)
+            )
         }
 
-        // 2. Structured Instruction Table
+        Spacer(Modifier.height(Tokens.Sp20))
+
+        // 2. Professional 3-Step Process Guide (사용 가이드 - 앞에 책/가이드 아이콘 추가)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = Tokens.Sp12, start = 4.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.MenuBook,
+                contentDescription = null,
+                tint = Tokens.Primary,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(Tokens.Sp6))
+            Text(
+                "사용 가이드",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = Tokens.TextPrimary
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(Tokens.Radius16))
-                .background(Tokens.SurfaceMuted)
-                .padding(Tokens.Sp16)
+                .background(Tokens.Surface)
+                .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius16)),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
-            Text(
-                "사용 가이드",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = Tokens.TextPrimary,
-                modifier = Modifier.padding(bottom = Tokens.Sp12)
-            )
-            
             val steps = listOf(
-                "인식" to "사물 주위에 녹색 박스가 나타납니다.",
-                "선택" to "박스를 탭하거나 영역을 직접 드래그하세요.",
-                "분석" to "AI가 재질을 판별하고 배출법을 안내합니다."
+                Triple("1단계 : 인식", "사물 주위에 녹색 박스가 나타납니다.", Icons.Outlined.CenterFocusWeak),
+                Triple("2단계 : 선택", "초록색 박스를 터치하거나, 버릴 물건을 손가락으로 직접 화면에 대고 네모나게 그려보세요.\n(사용자가 선택한 네모는 주황색 박스입니다)", Icons.Outlined.TouchApp),
+                Triple("3단계 : 분석", "AI가 재질을 판별하고 배출법을 안내합니다.", Icons.Outlined.Analytics)
             )
-            
-            steps.forEachIndexed { index, (label, desc) ->
+
+            steps.forEachIndexed { index, (title, desc, icon) ->
                 Row(
-                    modifier = Modifier.padding(vertical = 6.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Tokens.Surface)
+                        .padding(Tokens.Sp16),
                     verticalAlignment = Alignment.Top
                 ) {
-                    Text(
-                        text = label,
-                        modifier = Modifier.width(60.dp),
-                        color = Tokens.PrimaryGreen,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.ExtraBold
-                    )
-                    Text(
-                        text = desc,
-                        modifier = Modifier.weight(1f),
-                        color = Tokens.TextSecondary,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Tokens.PrimarySoft),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(imageVector = icon, contentDescription = null, tint = Tokens.Primary, modifier = Modifier.size(16.dp))
+                    }
+                    Spacer(Modifier.width(Tokens.Sp12))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
+                        Spacer(Modifier.height(2.dp))
+                        Text(desc, fontSize = 13.sp, color = Tokens.TextSecondary, lineHeight = 18.sp)
+                    }
                 }
                 if (index < steps.size - 1) {
-                    androidx.compose.material3.HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 4.dp),
-                        color = Tokens.Divider.copy(alpha = 0.5f)
-                    )
+                    HorizontalDivider(color = Tokens.Divider)
                 }
             }
         }
 
         Spacer(Modifier.height(Tokens.Sp16))
 
-        // Intuitive Legal Document Buttons (개인정보 처리방침, 이용약관 2개만 표시)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(Tokens.Sp8)
+        // 3. Quick Tip Banner (직관적이고 쉬운 어투)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Tokens.Radius12))
+                .background(Tokens.AccentSoft)
+                .border(1.dp, Tokens.Accent.copy(alpha = 0.2f), RoundedCornerShape(Tokens.Radius12))
+                .padding(Tokens.Sp16),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Outlined.Lightbulb, contentDescription = null, tint = Tokens.Accent, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(Tokens.Sp12))
+            Text(
+                "팁: 헷갈리거나 복잡한 쓰레기는 우측 상단의 'AI 묻기' 버튼을 눌러 직접 질문해보세요.",
+                fontSize = 12.sp,
+                color = Tokens.TextPrimary,
+                lineHeight = 18.sp,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(Modifier.height(Tokens.Sp24))
+
+        // 4. Elegant Legal Navigation Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Tokens.Radius12))
+                .background(Tokens.SurfaceMuted)
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             val legalItems = listOf(
                 "개인정보 처리방침" to Icons.Outlined.Shield,
@@ -835,17 +853,16 @@ private fun IdleCardContent(onShowInfo: (String) -> Unit) {
             legalItems.forEach { (title, icon) ->
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(Tokens.Radius12))
-                        .background(Tokens.SurfaceMuted)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(Tokens.Radius8))
                         .clickable { onShowInfo(title) }
-                        .padding(horizontal = Tokens.Sp16, vertical = 14.dp),
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(imageVector = icon, contentDescription = null, tint = Tokens.PrimaryGreen, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(Tokens.Sp12))
-                    Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary, modifier = Modifier.weight(1f))
-                    Icon(imageVector = Icons.Outlined.ChevronRight, contentDescription = null, tint = Tokens.TextSecondary, modifier = Modifier.size(18.dp))
+                    Icon(imageVector = icon, contentDescription = null, tint = Tokens.TextSecondary, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(Tokens.Sp8))
+                    Text(title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Tokens.TextSecondary)
                 }
             }
         }
@@ -854,7 +871,7 @@ private fun IdleCardContent(onShowInfo: (String) -> Unit) {
         Text(
             text = "© 2026 RecycleAI. All rights reserved.",
             modifier = Modifier.fillMaxWidth(),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            textAlign = TextAlign.Center,
             fontSize = 12.sp,
             color = Tokens.TextSecondary.copy(alpha = 0.7f)
         )
@@ -874,13 +891,13 @@ private fun AskUserContent(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(Tokens.PrimaryGreenSoft),
+                    .background(Tokens.PrimarySoft),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.AutoAwesome,
                     contentDescription = null,
-                    tint = Tokens.PrimaryGreen,
+                    tint = Tokens.Primary,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -907,7 +924,7 @@ private fun AskUserContent(
                     Row(verticalAlignment = Alignment.Top) {
                         Text(
                             text = if (isAi) "AI" else "ME",
-                            color = if (isAi) Tokens.PrimaryGreen else Tokens.TextSecondary,
+                            color = if (isAi) Tokens.Primary else Tokens.TextSecondary,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.width(24.dp).padding(top = 2.dp)
@@ -934,7 +951,7 @@ private fun AskUserContent(
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Tokens.Surface,
                 unfocusedContainerColor = Tokens.SurfaceMuted,
-                focusedBorderColor = Tokens.PrimaryGreen,
+                focusedBorderColor = Tokens.Primary,
                 unfocusedBorderColor = Color.Transparent,
             )
         )
@@ -957,9 +974,9 @@ private fun AskUserContent(
                         onSubmit(v)
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = Tokens.PrimaryGreen),
+                colors = ButtonDefaults.buttonColors(containerColor = Tokens.Primary),
                 shape = RoundedCornerShape(Tokens.Radius12),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
             ) {
                 Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(Tokens.Sp8))
@@ -983,7 +1000,7 @@ private fun CorrectionInput(onSubmit: (String) -> Unit) {
             Icon(
                 imageVector = Icons.Outlined.AutoAwesome,
                 contentDescription = null,
-                tint = Tokens.PrimaryGreen,
+                tint = Tokens.Primary,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(Modifier.width(Tokens.Sp8))
@@ -1006,7 +1023,7 @@ private fun CorrectionInput(onSubmit: (String) -> Unit) {
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Tokens.Surface,
                 unfocusedContainerColor = Tokens.Surface,
-                focusedBorderColor = Tokens.PrimaryGreen,
+                focusedBorderColor = Tokens.Primary,
                 unfocusedBorderColor = Color.Transparent,
             ),
             trailingIcon = {
@@ -1017,7 +1034,7 @@ private fun CorrectionInput(onSubmit: (String) -> Unit) {
                         onSubmit(v)
                     }
                 }) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "다시 묻기", tint = Tokens.PrimaryGreen)
+                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "다시 묻기", tint = Tokens.Primary)
                 }
             }
         )

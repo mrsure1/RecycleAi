@@ -1,9 +1,11 @@
 package app.trashai
 
 import android.content.Context
+import app.trashai.data.CommonGuide
 import app.trashai.data.ItemRule
 import app.trashai.data.KeywordHit
 import app.trashai.data.WasteGuideDb
+import app.trashai.data.commonGuideById
 import app.trashai.data.itemById
 import app.trashai.data.searchByKeywords
 import app.trashai.gemini.GeminiClient
@@ -27,15 +29,16 @@ data class AppUiState(
     /** JPEG of the most recent capture (cropped or full). Shown in the top half
      *  whenever a result sheet is open, replacing the live preview. */
     val lastCapturedJpeg: ByteArray? = null,
-) {
-    // Default equals/hashCode would compare ByteArray by reference; that's fine
-    // for our usage (we only test sheetState/regionLabel-driven recomposition).
-}
+)
 
 sealed interface SheetState {
     data object Idle : SheetState
     data class Loading(val message: String) : SheetState
-    data class Item(val rule: ItemRule, val alternates: List<KeywordHit>) : SheetState
+    data class Item(
+        val rule: ItemRule, 
+        val alternates: List<KeywordHit>,
+        val commonGuide: CommonGuide? = null
+    ) : SheetState
     data class Clarify(val candidates: List<KeywordHit>) : SheetState
     data class Empty(val detail: String) : SheetState
     data class Error(val message: String) : SheetState
@@ -50,6 +53,7 @@ sealed interface SheetState {
         val rule: ItemRule,
         val alternates: List<KeywordHit>,
         val sourceLabel: String,
+        val commonGuide: CommonGuide? = null,
     ) : SheetState
 
     /** Legal info & App info sheet. */
@@ -119,13 +123,13 @@ class AppState(private val appContext: Context) {
 
     fun pickItem(itemId: String) {
         scope.launch {
-            val rule = withContext(Dispatchers.IO) {
-                WasteGuideDb.open(appContext).itemById(itemId)
-            }
+            val db = withContext(Dispatchers.IO) { WasteGuideDb.open(appContext) }
+            val rule = withContext(Dispatchers.IO) { db.itemById(itemId) }
             if (rule == null) {
                 _state.update { it.copy(sheetState = SheetState.Empty("선택한 품목을 찾지 못했습니다.")) }
             } else {
-                _state.update { it.copy(sheetState = SheetState.Item(rule, alternates = emptyList())) }
+                val guide = if (isEcycleItem(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
+                _state.update { it.copy(sheetState = SheetState.Item(rule, alternates = emptyList(), commonGuide = guide)) }
             }
         }
     }
@@ -238,12 +242,14 @@ class AppState(private val appContext: Context) {
                 _state.update { it.copy(sheetState = SheetState.Empty("DB에서 ${top.itemName}을 찾지 못했습니다.")) }
                 return@launch
             }
+            val guide = if (isEcycleItem(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
             _state.update {
                 it.copy(
                     sheetState = SheetState.Confirming(
                         rule = rule,
                         alternates = hits.drop(1),
                         sourceLabel = "사용자 묘사 매칭",
+                        commonGuide = guide,
                     )
                 )
             }
@@ -252,7 +258,7 @@ class AppState(private val appContext: Context) {
 
     fun confirmYes() {
         val s = _state.value.sheetState as? SheetState.Confirming ?: return
-        _state.update { it.copy(sheetState = SheetState.Item(s.rule, s.alternates)) }
+        _state.update { it.copy(sheetState = SheetState.Item(s.rule, s.alternates, s.commonGuide)) }
     }
 
     fun confirmNo() {
@@ -281,12 +287,14 @@ class AppState(private val appContext: Context) {
             if (rule == null) {
                 _state.update { it.copy(sheetState = SheetState.Empty("DB에서 ${top.itemName}을 찾지 못했습니다.")) }
             } else {
+                val guide = if (isEcycleItem(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
                 _state.update {
                     it.copy(
                         sheetState = SheetState.Confirming(
                             rule = rule,
                             alternates = hits.drop(1),
                             sourceLabel = sourceLabel,
+                            commonGuide = guide,
                         )
                     )
                 }
@@ -294,5 +302,15 @@ class AppState(private val appContext: Context) {
         } else {
             _state.update { it.copy(sheetState = SheetState.Clarify(hits)) }
         }
+    }
+
+    private fun isEcycleItem(rule: ItemRule): Boolean {
+        val cat = rule.primaryCategory ?: ""
+        val name = rule.itemName
+        return cat.contains("가전") || name.contains("TV") || name.contains("냉장고") || 
+               name.contains("세탁기") || name.contains("에어컨") || name.contains("전자레인지") || 
+               name.contains("청소기") || name.contains("컴퓨터") || name.contains("모니터") || 
+               name.contains("노트북") || name.contains("선풍기") || name.contains("가습기") || 
+               name.contains("헤어드라이어") || name.contains("러닝머신")
     }
 }

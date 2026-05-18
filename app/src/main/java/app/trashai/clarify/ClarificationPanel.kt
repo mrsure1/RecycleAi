@@ -61,7 +61,7 @@ fun ClarificationChips(
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = null,
-                tint = Tokens.PrimaryGreen,
+                tint = Tokens.Primary,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(Modifier.width(Tokens.Sp8))
@@ -80,7 +80,6 @@ fun ClarificationChips(
 
 @Composable
 private fun ChipFlow(items: List<KeywordHit>, onPick: (KeywordHit) -> Unit) {
-    // Simple wrap using Column-of-Rows; avoids extra accompanist-flow dep.
     val rows = items.chunked(2)
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         for (row in rows) {
@@ -92,10 +91,10 @@ private fun ChipFlow(items: List<KeywordHit>, onPick: (KeywordHit) -> Unit) {
                         onClick = { onPick(h) },
                         label = { Text(h.itemName, fontWeight = FontWeight.SemiBold) },
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Tokens.PrimaryGreen.copy(alpha = 0.3f)),
+                        border = BorderStroke(1.dp, Tokens.Primary.copy(alpha = 0.3f)),
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = Tokens.PrimaryGreenSoft,
-                            labelColor = Tokens.PrimaryGreen,
+                            containerColor = Tokens.PrimarySoft,
+                            labelColor = Tokens.Primary,
                         ),
                         modifier = Modifier.weight(1f)
                     )

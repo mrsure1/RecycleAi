@@ -1,40 +1,32 @@
 package app.trashai.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.trashai.data.CommonGuide
 import app.trashai.data.ItemRule
 
 @Composable
-fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
+fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null, commonGuide: CommonGuide? = null) {
     // ---- Title row -----------------------------------------------------------
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -44,13 +36,13 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
             modifier = Modifier
                 .size(36.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(Tokens.PrimaryGreenTint),
+                .background(Tokens.RecycleGreenSoft),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Outlined.Recycling,
                 contentDescription = null,
-                tint = Tokens.PrimaryGreen,
+                tint = Tokens.RecycleGreen,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -61,7 +53,7 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
                 fontSize = Tokens.TitleSize,
                 fontWeight = FontWeight.Bold,
                 color = Tokens.TextPrimary,
-                lineHeight = androidx.compose.ui.unit.TextUnit(26f, androidx.compose.ui.unit.TextUnitType.Sp),
+                lineHeight = 26.sp,
             )
             rule.primaryCategory?.let {
                 Spacer(Modifier.height(Tokens.Sp4))
@@ -91,8 +83,9 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
         .map { it.trim() }
         .filter { it.length >= 2 }
         .take(5)
+        
     if (steps.size <= 2) {
-        // Case 1: 1~2개일 때 가로 배치 (중간에 화살표 표시)
+        // Case 1: 1~2개일 때 가로 배치
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -121,14 +114,14 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
                     Icon(
                         imageVector = Icons.Outlined.ChevronRight,
                         contentDescription = "다음 단계",
-                        tint = Tokens.PrimaryGreen,
+                        tint = Tokens.Primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
             }
         }
     } else {
-        // Case 2: 3개 이상일 때 세로 배치 (각각 중간에 화살표 표시)
+        // Case 2: 3개 이상일 때 세로 배치
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -154,22 +147,23 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
                     Icon(
                         imageVector = Icons.Outlined.KeyboardArrowDown,
                         contentDescription = "다음 단계",
-                        tint = Tokens.PrimaryGreen,
+                        tint = Tokens.Primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
             }
         }
     }
-    // ---- Region Time and Location ----------------------------------------------
+
+    // ---- Region Time and Location (Sleek Navy Banner) ----------------------------------------------
     if (isRegionalOverride) {
         Spacer(Modifier.height(Tokens.Sp12))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(Tokens.Radius12))
-                .background(Color.White.copy(alpha = 0.6f)) // Subtle Glassmorphism
-                .border(1.dp, Color.White, RoundedCornerShape(Tokens.Radius12))
+                .background(Tokens.SurfaceMuted)
+                .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
                 .padding(Tokens.Sp16)
         ) {
             Text(
@@ -182,9 +176,15 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
         }
     }
 
+    // ---- E-순환거버넌스 무상 수거 안내 (DB 기반 CommonGuide 출력) ----------------------------------------
+    if (commonGuide != null) {
+        Spacer(Modifier.height(Tokens.Sp16))
+        CommonGuideSection(guide = commonGuide)
+    }
+
     rule.featureText?.let {
         Spacer(Modifier.height(Tokens.Sp12))
-        InfoBlock(icon = Icons.Outlined.EnergySavingsLeaf, title = "특징", body = it, accent = Tokens.PrimaryGreenSoft, iconTint = Tokens.PrimaryGreen)
+        InfoBlock(icon = Icons.Outlined.EnergySavingsLeaf, title = "특징", body = it, accent = Tokens.PrimarySoft, iconTint = Tokens.Primary)
     }
     rule.cautionText?.let {
         Spacer(Modifier.height(Tokens.Sp8))
@@ -193,7 +193,7 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
 
     Spacer(Modifier.height(Tokens.Sp16))
     
-    // ---- Source & Attribution (Sleek but subtle) ----------------------------
+    // ---- Source & Attribution (Sleek Navy Theme) ----------------------------
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(Tokens.Radius8))
@@ -207,14 +207,14 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
             color = Tokens.TextSecondary.copy(alpha = 0.8f),
             fontWeight = FontWeight.Medium
         )
-        androidx.compose.foundation.Image(
-            painter = androidx.compose.ui.res.painterResource(id = app.trashai.R.drawable.mois_logo),
+        Image(
+            painter = painterResource(id = app.trashai.R.drawable.mois_logo),
             contentDescription = "행정안전부 로고",
             modifier = Modifier.height(14.dp)
         )
         Spacer(Modifier.width(Tokens.Sp6))
-        androidx.compose.foundation.Image(
-            painter = androidx.compose.ui.res.painterResource(id = app.trashai.R.drawable.gov_logo),
+        Image(
+            painter = painterResource(id = app.trashai.R.drawable.gov_logo),
             contentDescription = "기후에너지환경부 로고",
             modifier = Modifier.height(14.dp)
         )
@@ -236,15 +236,15 @@ fun ItemRuleBody(rule: ItemRule, regionLabel: String? = null) {
 private fun RegionBadge(label: String) {
     Row(
         modifier = Modifier
-            .background(Tokens.PrimaryGreenTint, CircleShape)
-            .border(0.5.dp, Tokens.PrimaryGreen.copy(alpha = 0.2f), CircleShape)
+            .background(Tokens.PrimaryTint, CircleShape)
+            .border(0.5.dp, Tokens.Primary.copy(alpha = 0.2f), CircleShape)
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             imageVector = Icons.Outlined.EnergySavingsLeaf,
             contentDescription = null,
-            tint = Tokens.PrimaryGreen,
+            tint = Tokens.Primary,
             modifier = Modifier.size(12.dp),
         )
         Spacer(Modifier.width(4.dp))
@@ -252,7 +252,7 @@ private fun RegionBadge(label: String) {
             text = label,
             fontSize = Tokens.TagSize,
             fontWeight = FontWeight.SemiBold,
-            color = Tokens.PrimaryGreen,
+            color = Tokens.Primary,
             maxLines = 1,
         )
     }
@@ -260,14 +260,14 @@ private fun RegionBadge(label: String) {
 
 @Composable
 private fun SectionHeader(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     text: String,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Tokens.PrimaryGreen,
+            tint = Tokens.Primary,
             modifier = Modifier.size(16.dp),
         )
         Spacer(Modifier.width(Tokens.Sp6))
@@ -275,7 +275,7 @@ private fun SectionHeader(
             text = text,
             fontSize = Tokens.SectionSize,
             fontWeight = FontWeight.Bold,
-            color = Tokens.PrimaryGreen,
+            color = Tokens.Primary,
         )
     }
 }
@@ -295,12 +295,12 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
             modifier = Modifier
                 .size(22.dp)
                 .clip(CircleShape)
-                .background(Tokens.PrimaryGreenSoft),
+                .background(Tokens.PrimarySoft),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 "$number",
-                color = Tokens.PrimaryGreen,
+                color = Tokens.Primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 11.sp,
             )
@@ -309,7 +309,6 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
         
         Column(modifier = Modifier.weight(1f)) {
             if (lines.size <= 1) {
-                // Case 1: Single item - No dot, just text
                 Text(
                     text = lines.firstOrNull() ?: "",
                     color = Tokens.TextPrimary,
@@ -319,42 +318,41 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
                     fontWeight = FontWeight.Bold
                 )
             } else {
-                // Case 2: Multiple items - Perfect hanging indent with fixed bullet width
                 Column(
                     verticalArrangement = Arrangement.spacedBy(Tokens.Sp4)
                 ) {
-                lines.forEach { line ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = "•",
-                            color = Tokens.PrimaryGreen,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.width(12.dp) // Fixed width for bullet to force indent
-                        )
-                        Text(
-                            text = line,
-                            color = Tokens.TextPrimary,
-                            fontSize = 13.sp,
-                            lineHeight = 17.sp,
-                            textAlign = TextAlign.Start,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1f) // Text stays in its own column
-                        )
+                    lines.forEach { line ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = "•",
+                                color = Tokens.Primary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.width(12.dp)
+                            )
+                            Text(
+                                text = line,
+                                color = Tokens.TextPrimary,
+                                fontSize = 13.sp,
+                                lineHeight = 17.sp,
+                                textAlign = TextAlign.Start,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }
-        } // closes if-else
-    } // closes Column(modifier = Modifier.weight(1f))
-} // closes StepColumn Row
-} // closes StepColumn function
+        }
+    }
+}
 
 @Composable
 private fun InfoBlock(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     body: String,
     accent: Color,
@@ -382,14 +380,12 @@ private fun InfoBlock(
                 fontWeight = FontWeight.SemiBold,
                 color = iconTint,
             )
-            // Clean up DB text: remove existing bullets (•, -, *, ·) or numbers (1.) from start
             val bulletRegex = Regex("^[•\\-*·\\d.]+\\s*")
             val lines = body.split('\n')
                 .map { it.trim().replaceFirst(bulletRegex, "") }
                 .filter { it.isNotEmpty() }
 
             if (lines.size <= 1) {
-                // Case 1: Single item - No bullet, just text
                 Text(
                     text = lines.firstOrNull() ?: "",
                     fontSize = Tokens.CaptionSize,
@@ -397,7 +393,6 @@ private fun InfoBlock(
                     lineHeight = 16.sp
                 )
             } else {
-                // Case 2: Multiple items - Bulleted list with hanging indent
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     lines.forEach { line ->
                         Row(verticalAlignment = Alignment.Top) {
@@ -422,22 +417,146 @@ private fun InfoBlock(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFFF8F9FA)
+@Composable
+fun CommonGuideSection(guide: CommonGuide) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Tokens.Radius16))
+            .background(Tokens.PrimarySoft)
+            .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius16))
+            .padding(Tokens.Sp16)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Outlined.LocalShipping,
+                contentDescription = null,
+                tint = Tokens.Primary,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(Modifier.width(Tokens.Sp8))
+            Text(
+                guide.title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Tokens.TextPrimary
+            )
+        }
+        Spacer(Modifier.height(Tokens.Sp8))
+        Text(
+            guide.description,
+            fontSize = 13.sp,
+            color = Tokens.TextSecondary,
+            lineHeight = 20.sp
+        )
+        Spacer(Modifier.height(Tokens.Sp16))
+        
+        if (guide.tableHeaders != null && guide.tableRows != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(Tokens.Radius12))
+                    .background(Tokens.Surface)
+                    .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Tokens.SurfaceMuted)
+                        .padding(Tokens.Sp12),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    guide.tableHeaders.forEachIndexed { index, header ->
+                        val weight = if (index == 1) 0.4f else 0.3f
+                        Text(header, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Tokens.TextSecondary, modifier = Modifier.weight(weight))
+                    }
+                }
+                HorizontalDivider(color = Tokens.Divider)
+                
+                // Rows
+                guide.tableRows.forEachIndexed { rowIndex, row ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(Tokens.Sp12),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        row.forEachIndexed { colIndex, cell ->
+                            val weight = if (colIndex == 1) 0.4f else 0.3f
+                            val color = when (colIndex) {
+                                0 -> Tokens.Primary
+                                2 -> Tokens.Accent
+                                else -> Tokens.TextSecondary
+                            }
+                            val fontWeight = if (colIndex != 1) FontWeight.Bold else FontWeight.Normal
+                            Text(
+                                text = cell, 
+                                fontWeight = fontWeight, 
+                                fontSize = 12.sp, 
+                                color = color, 
+                                modifier = Modifier.weight(weight).padding(horizontal = if (colIndex == 1) 4.dp else 0.dp)
+                            )
+                        }
+                    }
+                    if (rowIndex < guide.tableRows.size - 1) {
+                        HorizontalDivider(color = Tokens.Divider)
+                    }
+                }
+            }
+            Spacer(Modifier.height(Tokens.Sp16))
+        }
+
+        if (guide.ctaLabel != null && guide.ctaAction != null) {
+            val context = LocalContext.current
+            Button(
+                onClick = {
+                    val intent = android.content.Intent(android.content.Intent.ACTION_DIAL).apply {
+                        data = android.net.Uri.parse(guide.ctaAction)
+                    }
+                    context.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Tokens.Primary),
+                shape = RoundedCornerShape(Tokens.Radius12),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(vertical = 14.dp)
+            ) {
+                Icon(Icons.Outlined.Phone, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(Tokens.Sp8))
+                Text(guide.ctaLabel, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFFF8FAFC)
 @Composable
 private fun ItemRuleBodyPreview() {
-    app.trashai.data.ItemRule(
+    val sampleRule = ItemRule(
         itemId = "test1",
-        itemName = "투명 페트병",
-        primaryCategory = "플라스틱",
-        dischargeMethod = "1. 내용물을 비우고 물로 헹굽니다.\n2. 라벨을 제거합니다.\n3. 찌그러뜨려 뚜껑을 닫습니다.",
-        featureText = "무색 투명한 생수, 음료수병만 해당됩니다.",
-        cautionText = "유색 플라스틱이나 커피컵은 일반 플라스틱으로 배출하세요.",
-        appSummary = "깨끗이 씻어서 배출",
+        itemName = "세탁기",
+        primaryCategory = "대형 가전",
+        dischargeMethod = "1. 대형 폐가전은 무상 방문 수거 서비스를 이용하세요.\n2. 집 밖으로 배출할 필요 없이 기사님이 직접 방문합니다.",
+        featureText = "정부 지원 E-순환거버넌스 대상 품목",
+        cautionText = "소형 가전은 5개 이상 모아서 배출해야 방문 수거가 가능합니다.",
+        appSummary = "무상 방문 수거 이용 가능",
         sourceName = "고양시청",
         sourceUrl = ""
-    ).let { rule ->
-        Column(modifier = Modifier.padding(Tokens.Sp16)) {
-            ItemRuleBody(rule = rule, regionLabel = "고양시 일산동구")
-        }
+    )
+    val sampleGuide = CommonGuide(
+        guideId = "ecycle",
+        title = "폐가전제품 배출 방법 (무상 방문 수거)",
+        subtitle = "정부 운영 E-순환거버넌스",
+        description = "TV, 냉장고, 세탁기, 에어컨 등 폐가전제품은 정부에서 운영하는 'E-순환거버넌스'를 통해 전액 무료로 내놓으실 수 있습니다. 무겁게 집 밖으로 나를 필요 없이 수거 기사님이 집 안까지 방문하여 수거해 갑니다.",
+        tableHeaders = listOf("분류", "수거 기준 품목", "배출 팁"),
+        tableRows = listOf(
+            listOf("단일 수거 가능", "냉장고, 세탁기, 에어컨, TV, 러닝머신, 전자레인지 등 대형 가전", "1개만 버려도 무상 방문 수거 가능"),
+            listOf("다량 수거 가능", "PC 본체, 모니터, 노트북, 가습기, 헤어드라이어, 청소기 등 소형 가전", "5개 이상 동시에 배출할 때 방문 수거 가능")
+        ),
+        ctaLabel = "1599-0903 전화 접수 (E-순환거버넌스)",
+        ctaAction = "tel:15990903"
+    )
+
+    Column(modifier = Modifier.padding(Tokens.Sp16)) {
+        ItemRuleBody(rule = sampleRule, regionLabel = "고양시 일산동구", commonGuide = sampleGuide)
     }
 }
