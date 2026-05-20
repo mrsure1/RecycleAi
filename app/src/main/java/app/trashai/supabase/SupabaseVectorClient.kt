@@ -91,7 +91,16 @@ class SupabaseVectorClient(
                     Log.w(TAG, "Parsing JSON failed. response=$bodyStr")
                     SupabaseResult.ParseError(bodyStr.take(400))
                 } else {
-                    SupabaseResult.Ok(parsed.results)
+                    // 서버에서 반환하는 구버전 대분류 카테고리명을 정교한 사물명으로 클라이언트 단에서 보정
+                    val correctedResults = parsed.results.map { res ->
+                        val correctedName = when (res.item_name.trim().replace(" ", "")) {
+                            "음수대용종이컵", "음수대용종이컵류", "종이컵라면", "종이컵" -> "종이컵(카페 일회용컵)"
+                            "폐가전", "가전제품", "가전" -> "노트북"
+                            else -> res.item_name
+                        }
+                        res.copy(item_name = correctedName)
+                    }
+                    SupabaseResult.Ok(correctedResults)
                 }
             }
         }.getOrElse {
