@@ -44,7 +44,7 @@ serve(async (req) => {
     }
 
     console.log("[Info] Gemini 1.5 Flash 이미지 분석 시작...");
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${geminiKey}`;
     
     const geminiPayload = {
       contents: [
