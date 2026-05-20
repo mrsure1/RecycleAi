@@ -16,13 +16,13 @@ val supabaseUrl: String = run {
     val p = Properties()
     val f = rootProject.file("local.properties")
     if (f.exists()) p.load(f.inputStream())
-    p.getProperty("SUPABASE_URL", "")
+    p.getProperty("SUPABASE_URL", "").trim('"')
 }
 val supabaseAnonKey: String = run {
     val p = Properties()
     val f = rootProject.file("local.properties")
     if (f.exists()) p.load(f.inputStream())
-    p.getProperty("SUPABASE_ANON_KEY", p.getProperty("SUPABASE_SERVICE_KEY", ""))
+    p.getProperty("SUPABASE_ANON_KEY", p.getProperty("SUPABASE_SERVICE_KEY", "")).trim('"')
 }
 
 android {
