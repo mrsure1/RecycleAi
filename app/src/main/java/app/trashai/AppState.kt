@@ -11,6 +11,8 @@ import app.trashai.data.ordinanceByRegion
 import app.trashai.data.searchByKeywords
 import app.trashai.gemini.GeminiClient
 import app.trashai.gemini.GeminiResult
+import app.trashai.supabase.SupabaseVectorClient
+import app.trashai.supabase.SupabaseResult
 import app.trashai.location.LocationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -72,6 +74,7 @@ class AppState(private val appContext: Context) {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val gemini = GeminiClient()
+    private val supabaseVector = SupabaseVectorClient()
 
     private val ambiguityGap = 0.15f
 
@@ -93,35 +96,43 @@ class AppState(private val appContext: Context) {
      * against the local DB.
      */
     suspend fun onCapture(jpegBytes: ByteArray) {
-        if (!gemini.isConfigured) {
-            _state.update { it.copy(sheetState = SheetState.Error("local.properties의 GEMINI_API_KEY를 입력해주세요. (Clean+Rebuild 필요)")) }
+        if (!supabaseVector.isConfigured) {
+            _state.update { it.copy(sheetState = SheetState.Error("local.properties의 SUPABASE_URL 및 SUPABASE_ANON_KEY를 입력해주세요. (Clean+Rebuild 필요)")) }
             return
         }
         _state.update {
             it.copy(
-                sheetState = SheetState.Loading("AI가 분석 중… (이미지 ${jpegBytes.size / 1024}KB)"),
+                sheetState = SheetState.Loading("AI가 벡터 분석 중… (이미지 ${jpegBytes.size / 1024}KB)"),
                 lastCapturedJpeg = jpegBytes,
             )
         }
-        when (val r = gemini.classifyTrashKeywords(jpegBytes)) {
-            is GeminiResult.Ok -> {
-                if (r.value.isEmpty()) startAskUser(reason = "AI가 빈 응답을 반환했어요.")
-                else groundAndPresent(r.value, sourceLabel = "Gemini")
+        
+        val sigunguCode = _state.value.regionOrdinance?.regionId ?: "1100000000"
+        
+        when (val r = supabaseVector.searchTrashVector(jpegBytes, sigunguCode)) {
+            is SupabaseResult.Ok -> {
+                if (r.value.isEmpty()) {
+                    startAskUser(reason = "벡터 검색 매칭 결과가 없습니다.")
+                } else {
+                    // 상위 유사도 매칭된 아이템명을 키워드로 획득하여 로컬 DB Grounding 수행
+                    val keywords = r.value.map { it.item_name }
+                    groundAndPresent(keywords, sourceLabel = "Vector Search")
+                }
             }
-            is GeminiResult.HttpError -> _state.update {
-                it.copy(sheetState = SheetState.Error("Gemini HTTP ${r.code}\n${r.body}"))
+            is SupabaseResult.HttpError -> _state.update {
+                it.copy(sheetState = SheetState.Error("Supabase HTTP ${r.code}\n${r.body}"))
             }
-            is GeminiResult.ParseError -> _state.update {
-                it.copy(sheetState = SheetState.Error("Gemini 응답 파싱 실패:\n${r.rawSnippet}"))
+            is SupabaseResult.ParseError -> _state.update {
+                it.copy(sheetState = SheetState.Error("Supabase 응답 파싱 실패:\n${r.rawSnippet}"))
             }
-            is GeminiResult.NetworkError -> _state.update {
+            is SupabaseResult.NetworkError -> _state.update {
                 it.copy(sheetState = SheetState.Error("네트워크 오류: ${r.detail}"))
             }
-            is GeminiResult.InvalidInput -> _state.update {
+            is SupabaseResult.InvalidInput -> _state.update {
                 it.copy(sheetState = SheetState.Error("입력 오류: ${r.detail}"))
             }
-            GeminiResult.NotConfigured -> _state.update {
-                it.copy(sheetState = SheetState.Error("API 키가 설정되지 않았습니다."))
+            SupabaseResult.NotConfigured -> _state.update {
+                it.copy(sheetState = SheetState.Error("Supabase 접속 정보가 설정되지 않았습니다."))
             }
         }
     }

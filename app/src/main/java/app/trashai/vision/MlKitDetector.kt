@@ -52,6 +52,7 @@ class MlKitDetector : AutoCloseable {
                 bbox = RectF(r.left.toFloat(), r.top.toFloat(), r.right.toFloat(), r.bottom.toFloat()),
                 srcWidth = srcW,
                 srcHeight = srcH,
+                trackingId = obj.trackingId,
             )
         }
         return DetectionResult(boxes, rotated)

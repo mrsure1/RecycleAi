@@ -64,6 +64,7 @@ import java.util.concurrent.Executors
 fun CameraScreen(
     onCaptureBytes: (ByteArray) -> Unit,
     capturedJpeg: ByteArray? = null,
+    sigunguCode: String = "1100000000",
 ) {
     val permState = rememberPermissionState(Manifest.permission.CAMERA)
     LaunchedEffect(Unit) {
@@ -75,7 +76,7 @@ fun CameraScreen(
             // Result mode — show the still image the user captured/tapped.
             CapturedImageView(capturedJpeg)
         } else if (permState.status.isGranted) {
-            CameraWithLens(onCaptureBytes = onCaptureBytes)
+            CameraWithLens(onCaptureBytes = onCaptureBytes, sigunguCode = sigunguCode)
         } else {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Surface(color = Color(0xCC000000)) {
@@ -97,7 +98,10 @@ fun CameraScreen(
 
 @SuppressLint("MissingPermission")
 @Composable
-private fun CameraWithLens(onCaptureBytes: (ByteArray) -> Unit) {
+private fun CameraWithLens(
+    onCaptureBytes: (ByteArray) -> Unit,
+    sigunguCode: String,
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
@@ -105,6 +109,48 @@ private fun CameraWithLens(onCaptureBytes: (ByteArray) -> Unit) {
     val detector = remember { MlKitDetector() }
     var latestResult by remember { mutableStateOf<DetectionResult?>(null) }
     var isUserDrawing by remember { mutableStateOf(false) }
+
+    val supabase = remember { app.trashai.supabase.SupabaseVectorClient() }
+    val trackingLabels = remember { androidx.compose.runtime.mutableStateMapOf<Int, String>() }
+    val pendingTrackings = remember { androidx.compose.runtime.mutableStateMapOf<Int, Boolean>() }
+
+    // ML Kit가 감지한 트래킹 ID별로 비동기 Supabase 벡터 검색을 수행하여 라벨 캐싱
+    LaunchedEffect(latestResult) {
+        val result = latestResult ?: return@LaunchedEffect
+        val src = result.sourceBitmap
+        for (det in result.detections) {
+            val tid = det.trackingId ?: continue
+            if (trackingLabels.containsKey(tid) || pendingTrackings.containsKey(tid)) continue
+
+            pendingTrackings[tid] = true
+            scope.launch {
+                try {
+                    val bytes = withContext(Dispatchers.Default) {
+                        cropToJpeg(src, det.bbox)
+                    }
+                    if (bytes != null) {
+                        when (val apiRes = supabase.searchTrashVector(bytes, sigunguCode)) {
+                            is app.trashai.supabase.SupabaseResult.Ok -> {
+                                val topMatch = apiRes.value.firstOrNull()
+                                if (topMatch != null && topMatch.similarity >= 0.35) {
+                                    trackingLabels[tid] = topMatch.item_name
+                                } else {
+                                    trackingLabels[tid] = "미확인"
+                                }
+                            }
+                            else -> {
+                                trackingLabels[tid] = "확인 불가"
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.w("CameraWithLens", "TID $tid 분석 실패", e)
+                } finally {
+                    pendingTrackings.remove(tid)
+                }
+            }
+        }
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -142,9 +188,20 @@ private fun CameraWithLens(onCaptureBytes: (ByteArray) -> Unit) {
             factory = { previewView },
         )
 
+        // 캐시된 실시간 사물 라벨 맵핑 리스트 작성
+        val mappedDets = remember(latestResult?.detections, trackingLabels.toMap(), pendingTrackings.toMap()) {
+            latestResult?.detections?.map { det ->
+                val label = if (det.trackingId != null) {
+                    if (pendingTrackings[det.trackingId] == true) "분석 중..."
+                    else trackingLabels[det.trackingId]
+                } else null
+                det.copy(label = label)
+            }.orEmpty()
+        }
+
         // Single overlay handling box-tap AND drag-to-draw in one gesture loop
         GestureOverlay(
-            detections = latestResult?.detections.orEmpty(),
+            detections = mappedDets,
             onBoxTap = { detection ->
                 val src = latestResult?.sourceBitmap ?: return@GestureOverlay
                 scope.launch {

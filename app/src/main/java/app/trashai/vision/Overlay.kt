@@ -23,6 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -142,6 +145,65 @@ fun GestureOverlay(
                     val left = minOf(s.x, e.x); val top = minOf(s.y, e.y)
                     val right = maxOf(s.x, e.x); val bottom = maxOf(s.y, e.y)
                     drawNeonBrackets(this, left, top, right, bottom, isCustomDrag = true)
+                }
+            }
+
+            // 1-1. 실시간 사물 감지(초록색) 라벨 칩 오버레이
+            val density = LocalDensity.current.density
+            val mapped = mapAll(detsState.value, canvasSize.width.toFloat(), canvasSize.height.toFloat())
+            for (m in mapped) {
+                if (!m.src.label.isNullOrEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .absoluteOffset(
+                                x = (m.left / density).dp,
+                                y = ((m.top - 32f).coerceAtLeast(0f) / density).dp
+                            )
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color(0xE6000000))
+                            .androidx.compose.foundation.border(
+                                width = 1.dp,
+                                color = NeonGreen,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = m.src.label,
+                            color = NeonGreen,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            // 1-2. 사용자가 직접 드래그한 주황색 영역 가이드 칩 오버레이
+            val s = dragStart; val e = dragEnd
+            if (s != null && e != null) {
+                val left = minOf(s.x, e.x)
+                val top = minOf(s.y, e.y)
+                Box(
+                    modifier = Modifier
+                        .absoluteOffset(
+                            x = (left / density).dp,
+                            y = ((top - 32f).coerceAtLeast(0f) / density).dp
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xE6000000))
+                        .androidx.compose.foundation.border(
+                            width = 1.dp,
+                            color = NeonOrange,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "드래그 선택 영역",
+                        color = NeonOrange,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

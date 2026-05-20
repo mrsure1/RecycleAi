@@ -118,6 +118,7 @@ private fun TrashAiApp() {
             CameraScreen(
                 onCaptureBytes = { bytes -> scope.launch { viewModel.onCapture(bytes) } },
                 capturedJpeg = state.lastCapturedJpeg,
+                sigunguCode = state.regionOrdinance?.regionId ?: "1100000000",
             )
 
             // Top status bar — pin pill (left) + AI ask (right)
