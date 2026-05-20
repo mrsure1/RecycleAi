@@ -21,7 +21,7 @@ object TrashAiConfig {
      * true: 100% 온디바이스 오프라인 비전 및 로컬 DB 검색 모드 실행 (비용 0원)
      * false: 기존 Supabase Edge Function + Gemini 3.1 Flash Lite 클라우드 API 모드 실행
      */
-    const val USE_LOCAL_VECTOR_SEARCH = true
+    const val USE_LOCAL_VECTOR_SEARCH = false
 }
 
 class SupabaseVectorClient(
