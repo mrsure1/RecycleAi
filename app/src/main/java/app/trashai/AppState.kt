@@ -96,15 +96,42 @@ class AppState(private val appContext: Context) {
      * against the local DB.
      */
     suspend fun onCapture(jpegBytes: ByteArray, rawLabel: String? = null) {
-        // 이미 유효한 캐시 라벨이나 분류명이 전달된 경우, 즉시 로컬 DB 그라운딩을 수행하여 비용 및 대기 시간 단축
-        if (!rawLabel.isNullOrBlank() && rawLabel != "미확인" && rawLabel != "확인 불가" && rawLabel != "분석 중...") {
+        // 한글 문자가 포함된 확실하게 캐싱 및 판독 완료된 진짜 품목 라벨명인지 검증
+        val isConfirmedKoreanLabel = !rawLabel.isNullOrBlank() && 
+                rawLabel != "미확인" && rawLabel != "확인 불가" && rawLabel != "분석 중..." &&
+                rawLabel.any { it.code in 0xAC00..0xD7A3 }
+
+        if (isConfirmedKoreanLabel) {
             _state.update {
                 it.copy(
                     sheetState = SheetState.Loading("로컬 DB 가이드 매칭 중…"),
                     lastCapturedJpeg = jpegBytes,
                 )
             }
-            groundAndPresent(listOf(rawLabel), sourceLabel = "Cached Match")
+            groundAndPresent(listOf(rawLabel!!), sourceLabel = "Cached Match")
+            return
+        }
+
+        // 온디바이스 로컬 모드 활성화 시 서버 요청을 하지 않고 로컬 맵퍼 처리
+        if (app.trashai.supabase.TrashAiConfig.USE_LOCAL_VECTOR_SEARCH) {
+            _state.update {
+                it.copy(
+                    sheetState = SheetState.Loading("로컬 DB 가이드 매칭 중…"),
+                    lastCapturedJpeg = jpegBytes,
+                )
+            }
+            val sigunguCode = _state.value.regionOrdinance?.regionId ?: "1100000000"
+            when (val r = supabaseVector.searchTrashVector(jpegBytes, sigunguCode, rawLabel)) {
+                is SupabaseResult.Ok -> {
+                    if (r.value.isEmpty()) {
+                        startAskUser(reason = "로컬 검색 매칭 결과가 없습니다.")
+                    } else {
+                        val keywords = r.value.map { it.item_name }
+                        groundAndPresent(keywords, sourceLabel = "Local ML Match")
+                    }
+                }
+                else -> startAskUser(reason = "로컬 매칭 오류 발생")
+            }
             return
         }
 
