@@ -1,0 +1,9 @@
+--- 노트북/컴퓨터 app_item_rule 검색 ---
+ID: 670 | Name: 컴퓨터 본체
+ID: 654 | Name: 노트북 파우치
+ID: 241 | Name: 노트북
+
+--- 노트북/컴퓨터 app_search_keyword 검색 ---
+ID: 670 | Item: 컴퓨터 본체 | Keyword: 컴퓨터본체 | Weight: 100
+ID: 654 | Item: 노트북 파우치 | Keyword: 노트북파우치 | Weight: 100
+ID: 241 | Item: 노트북 | Keyword: 노트북 | Weight: 100

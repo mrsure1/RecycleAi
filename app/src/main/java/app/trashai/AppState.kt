@@ -378,16 +378,18 @@ class AppState(private val appContext: Context) {
     private fun expandKeywords(keywords: List<String>): List<String> {
         val expanded = keywords.toMutableList()
         for (kw in keywords) {
-            val trimmed = kw.trim()
-            if (trimmed == "종이컵" || trimmed == "음수대용 종이컵" || trimmed == "음수대용종이컵" || trimmed == "종이 컵라면") {
+            val trimmed = kw.trim().replace(" ", "")
+            expanded.add(trimmed)
+            expanded.add(kw.trim())
+
+            val kwLower = trimmed.lowercase()
+            if (kwLower.contains("종이컵") || kwLower.contains("일회용컵") || kwLower.contains("커피컵") || kwLower.contains("테이크아웃")) {
+                expanded.add("카페일회용컵")
                 expanded.add("카페 일회용컵")
-            } else if (trimmed == "커피컵" || trimmed == "테이크아웃컵" || trimmed == "일회용컵") {
-                expanded.add("카페 일회용컵")
-            } else if (trimmed == "커피종이컵" || trimmed == "종이커피컵") {
-                expanded.add("카페 일회용컵")
-            } else if (trimmed == "폐가전" || trimmed == "가전제품" || trimmed == "가전") {
+            }
+            if (kwLower.contains("가전") || kwLower.contains("컴퓨터") || kwLower.contains("노트북") || kwLower.contains("pc")) {
                 expanded.add("노트북")
-                expanded.add("컴퓨터")
+                expanded.add("컴퓨터본체")
             }
         }
         return expanded.distinct()
