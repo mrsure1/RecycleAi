@@ -40,7 +40,7 @@ serve(async (req) => {
     
     // HuggingFace Feature Extraction 파이프라인 호출
     const hfResponse = await fetch(
-      "https://api-inference.huggingface.co/pipeline/feature-extraction/openai/clip-vit-base-patch32",
+      "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32",
       {
         method: "POST",
         headers: {
