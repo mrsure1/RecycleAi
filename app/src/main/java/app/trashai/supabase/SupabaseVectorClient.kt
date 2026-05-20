@@ -11,6 +11,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
+import app.trashai.gemini.GeminiClient
+import app.trashai.gemini.GeminiResult
 
 /**
  * Supabase Edge Functions의 벡터 검색 엔드포인트(search-trash-vector)와 통신하여
@@ -23,9 +25,6 @@ object TrashAiConfig {
      */
     const val USE_LOCAL_VECTOR_SEARCH = false
 }
-
-import app.trashai.gemini.GeminiClient
-import app.trashai.gemini.GeminiResult
 
 class SupabaseVectorClient(
     private val supabaseUrl: String = BuildConfig.SUPABASE_URL,
