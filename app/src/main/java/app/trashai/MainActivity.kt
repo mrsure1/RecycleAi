@@ -1028,9 +1028,9 @@ private fun AskUserContent(
             shape = RoundedCornerShape(Tokens.Radius16),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Tokens.Surface,
-                unfocusedContainerColor = Tokens.SurfaceMuted,
+                unfocusedContainerColor = Tokens.Surface, // 비포커스 시에도 깔끔하게 흰색 배경 유지
                 focusedBorderColor = Tokens.Primary,
-                unfocusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Tokens.Divider, // 테두리를 명확하게 구분할 수 있도록 설정
             )
         )
         Spacer(Modifier.height(Tokens.Sp16))
@@ -1102,7 +1102,7 @@ private fun CorrectionInput(onSubmit: (String) -> Unit) {
                 focusedContainerColor = Tokens.Surface,
                 unfocusedContainerColor = Tokens.Surface,
                 focusedBorderColor = Tokens.Primary,
-                unfocusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = Tokens.Divider, // 테두리를 명확하게 구분할 수 있도록 설정
             ),
             trailingIcon = {
                 IconButton(onClick = {
