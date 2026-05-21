@@ -153,8 +153,8 @@ private fun TrashAiApp() {
                 )
             }
 
-            // "다시 스캔" premium button, bottom-left when a captured image is showing
-            if (state.lastCapturedJpeg != null) {
+            // "다시 스캔" premium button, bottom-left when not in Idle state
+            if (state.sheetState !is SheetState.Idle) {
                 Row(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -491,10 +491,21 @@ private fun BottomCardContent(
                 Column(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Tokens.Radius12)).background(Tokens.SurfaceMuted).padding(Tokens.Sp16)
                 ) {
-                    s.rule.appSummary?.let { Text(it, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
-                    s.rule.dischargeMethod?.let {
-                        Spacer(Modifier.height(Tokens.Sp6))
-                        Text(it, color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, lineHeight = 16.sp)
+                    // appSummary와 dischargeMethod 중복 방지: 동일하거나 포함관계면 하나만 표시
+                    val summary = s.rule.appSummary
+                    val discharge = s.rule.dischargeMethod
+                    val isDuplicate = summary != null && discharge != null &&
+                        (summary.trim() == discharge.trim() || discharge.contains(summary.trim()))
+
+                    if (isDuplicate) {
+                        // dischargeMethod가 더 상세하므로 그것만 표시
+                        Text(discharge!!, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
+                    } else {
+                        summary?.let { Text(it, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
+                        discharge?.let {
+                            Spacer(Modifier.height(Tokens.Sp6))
+                            Text(it, color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, lineHeight = 16.sp)
+                        }
                     }
                 }
                 Spacer(Modifier.height(Tokens.Sp16))
