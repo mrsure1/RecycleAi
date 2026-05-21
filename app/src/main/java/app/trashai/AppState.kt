@@ -141,7 +141,7 @@ class AppState(private val appContext: Context) {
         }
         _state.update {
             it.copy(
-                sheetState = SheetState.Loading("AI가 벡터 분석 중… (이미지 ${jpegBytes.size / 1024}KB)"),
+                sheetState = SheetState.Loading("AI 분석 중…"),
                 lastCapturedJpeg = jpegBytes,
             )
         }
