@@ -87,6 +87,7 @@ fun ItemRuleBody(
         .split('.', '。', '\n')
         .map { it.trim() }
         .filter { it.length >= 2 }
+        .distinctBy { it.replace(Regex("[\\s.,ㆍ·#?!~@@]"), "") }
         .take(5)
         
     Column(

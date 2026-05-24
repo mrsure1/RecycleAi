@@ -491,15 +491,21 @@ private fun BottomCardContent(
                 Column(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Tokens.Radius12)).background(Tokens.SurfaceMuted).padding(Tokens.Sp16)
                 ) {
-                    // appSummary와 dischargeMethod 중복 방지: 동일하거나 포함관계면 하나만 표시
+                    // appSummary와 dischargeMethod 중복 방지: 공백/기호 제거 후 양방향 포함관계면 하나만 표시
                     val summary = s.rule.appSummary
                     val discharge = s.rule.dischargeMethod
-                    val isDuplicate = summary != null && discharge != null &&
-                        (summary.trim() == discharge.trim() || discharge.contains(summary.trim()))
+                    val cleanSummary = summary?.replace(Regex("[\\s.,ㆍ·#?!~@@]"), "") ?: ""
+                    val cleanDischarge = discharge?.replace(Regex("[\\s.,ㆍ·#?!~@@]"), "") ?: ""
+                    val isDuplicate = summary != null && discharge != null && (
+                        cleanSummary == cleanDischarge ||
+                        cleanSummary.contains(cleanDischarge) ||
+                        cleanDischarge.contains(cleanSummary)
+                    )
 
                     if (isDuplicate) {
-                        // dischargeMethod가 더 상세하므로 그것만 표시
-                        Text(discharge!!, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
+                        // 더 긴(상세한) 내용을 우선적으로 표시
+                        val longerText = if (discharge!!.length >= summary!!.length) discharge else summary
+                        Text(longerText, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
                     } else {
                         summary?.let { Text(it, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
                         discharge?.let {
