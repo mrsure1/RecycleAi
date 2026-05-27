@@ -193,6 +193,11 @@ class AppState(private val appContext: Context) {
         _state.update { it.copy(sheetState = SheetState.Idle, lastCapturedJpeg = null) }
     }
 
+    /** 앱이 백그라운드로 갔다가 다시 켜질 때 스캔·결과 UI를 초기 상태로 되돌립니다. */
+    fun resetScanSession() {
+        _state.update { it.copy(sheetState = SheetState.Idle, lastCapturedJpeg = null) }
+    }
+
     fun showInfo(tab: String = "개인정보 처리방침") {
         _state.update { it.copy(sheetState = SheetState.Info(tab)) }
     }

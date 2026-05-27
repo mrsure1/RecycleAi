@@ -27,10 +27,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -113,10 +116,29 @@ private fun CameraWithLens(
     val supabase = remember { app.trashai.supabase.SupabaseVectorClient() }
     val trackingLabels = remember { androidx.compose.runtime.mutableStateMapOf<Int, String>() }
     val pendingTrackings = remember { androidx.compose.runtime.mutableStateMapOf<Int, Boolean>() }
+    var analysisSession by remember { mutableIntStateOf(0) }
+
+    fun clearLiveRecognitionCache() {
+        analysisSession++
+        trackingLabels.clear()
+        pendingTrackings.clear()
+        latestResult = null
+        detector.resetTracking()
+    }
+
+    // 앱 백그라운드/종료 후 재개 시 이전 실시간 라벨·트래킹 캐시 제거
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) clearLiveRecognitionCache()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // ML Kit가 감지한 트래킹 ID별로 비동기 Supabase 벡터 검색을 수행하여 라벨 캐싱
-    LaunchedEffect(latestResult) {
+    LaunchedEffect(latestResult, analysisSession) {
         val result = latestResult ?: return@LaunchedEffect
+        val sessionAtStart = analysisSession
         val src = result.sourceBitmap
         for (det in result.detections) {
             val tid = det.trackingId ?: continue
@@ -125,13 +147,15 @@ private fun CameraWithLens(
             pendingTrackings[tid] = true
             scope.launch {
                 try {
+                    if (sessionAtStart != analysisSession) return@launch
                     val bytes = withContext(Dispatchers.Default) {
                         cropToJpeg(src, det.bbox)
                     }
-                    if (bytes != null) {
+                    if (bytes != null && sessionAtStart == analysisSession) {
                         Log.d("CameraWithLens", "TID $tid 분석 시작 - 이미지 크롭 크기: ${bytes.size} bytes. Supabase 요청 중...")
                         when (val apiRes = supabase.searchTrashVector(bytes, sigunguCode, det.rawMlKitLabel)) {
                             is app.trashai.supabase.SupabaseResult.Ok -> {
+                                if (sessionAtStart != analysisSession) return@launch
                                 val topMatch = apiRes.value.firstOrNull()
                                 Log.d("CameraWithLens", "TID $tid Supabase 응답 성공 - 최고 매칭: ${topMatch?.item_name} (유사도: ${topMatch?.similarity})")
                                 if (topMatch != null && topMatch.similarity >= 0.35) {
@@ -141,6 +165,7 @@ private fun CameraWithLens(
                                 }
                             }
                             else -> {
+                                if (sessionAtStart != analysisSession) return@launch
                                 Log.w("CameraWithLens", "TID $tid Supabase API 실패: $apiRes")
                                 trackingLabels[tid] = "확인 불가"
                             }
@@ -149,7 +174,7 @@ private fun CameraWithLens(
                 } catch (e: Exception) {
                     Log.w("CameraWithLens", "TID $tid 분석 중 에러 발생", e)
                 } finally {
-                    pendingTrackings.remove(tid)
+                    if (sessionAtStart == analysisSession) pendingTrackings.remove(tid)
                 }
             }
         }

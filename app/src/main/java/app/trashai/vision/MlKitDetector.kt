@@ -41,6 +41,12 @@ class MlKitDetector : AutoCloseable {
     private val activeTracks = mutableListOf<TrackedObject>()
     private val trackTimeoutMs = 1500L
 
+    /** 앱 백그라운드/재개 시 이전 프레임 트래킹 상태를 버립니다. */
+    fun resetTracking() {
+        activeTracks.clear()
+        nextVirtualId = 10000
+    }
+
     @SuppressLint("UnsafeOptInUsageError")
     suspend fun analyze(image: ImageProxy): DetectionResult? {
         val media = image.image ?: return null
