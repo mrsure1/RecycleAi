@@ -1,0 +1,326 @@
+﻿
+============================================================
+app\src\main\assets\wasteguide.sqlite3  (8.56 MB)
+============================================================
+  app_common_guide: 1 rows
+  app_item_rule: 730 rows
+  app_region_ordinance: 252 rows
+  app_search_keyword: 1,234 rows
+  dictionary_item: 730 rows
+  meta: 15 rows
+  region: 269 rows
+  region_ordinance: 252 rows
+
+============================================================
+data\wasteguide_dictionary.sqlite3  (8.55 MB)
+============================================================
+  app_item_rule: 730 rows
+  app_region_ordinance: 252 rows
+  app_search_keyword: 1,234 rows
+  dictionary_item: 730 rows
+  meta: 15 rows
+  region: 269 rows
+  region_ordinance: 252 rows
+
+--- Samples from wasteguide.sqlite3 ---
+
+### app_item_rule (5 rows)
+item_id | item_name | primary_category | discharge | summary
+------------------------------------------------------------------------
+124 | AA 嫄댁쟾吏 | ?ы솢?⑺룓湲곕Ъ | 쨌혻 AA嫄댁쟾吏???꾩? ?섍굅?⑥쑝濡?諛곗텧?⑸땲?? | 遺꾨쪟: ?ы솢?⑺룓湲곕Ъ
+쨌혻 AA嫄댁쟾吏???꾩? ?섍굅?⑥쑝濡?諛곗텧?⑸땲??
+二쇱쓽: 쨌 諛섎뱶???ы솢??
+634 | AAA嫄댁쟾吏 | ?ы솢?⑺룓湲곕Ъ | 쨌혻 AAA嫄댁쟾吏???꾩??섍굅?⑥쑝濡?諛곗텧?⑸땲?? | 遺꾨쪟: ?ы솢?⑺룓湲곕Ъ
+쨌혻 AAA嫄댁쟾吏???꾩??섍굅?⑥쑝濡?諛곗텧?⑸땲??
+二쇱쓽: 쨌 諛섎뱶???ы솢??
+336 | CD | ?쇰컲?먭린臾?| 쨌 CD??醫낅웾?쒕큺?щ줈 諛곗텧?⑸땲?? | 遺꾨쪟: ?쇰컲?먭린臾?
+쨌 CD??醫낅웾?쒕큺?щ줈 諛곗텧?⑸땲??
+635 | CR 嫄댁쟾吏 | ?ы솢?⑺룓湲곕Ъ | 쨌 혻CR 嫄댁쟾吏???꾩??섍굅?⑥쑝濡?諛곗텧?⑸땲?? | 遺꾨쪟: ?ы솢?⑺룓湲곕Ъ
+쨌 혻CR 嫄댁쟾吏???꾩??섍굅?⑥쑝濡?諛곗텧?⑸땲??
+二쇱쓽: 쨌 諛섎뱶???ы솢??
+137 | LED | ?ы솢?⑺룓湲곕Ъ | 쨌혻 LED議곕챸(?꾧뎄?? 吏곴???? ?뺢킅???섍굅?⑥쑝濡?諛곗텧?⑸땲?? | 遺꾨쪟: ?ы솢?⑺룓湲곕Ъ
+쨌혻 LED議곕챸(?꾧뎄?? 吏곴???? ?뺢킅???섍굅?⑥쑝濡?諛곗텧?⑸땲??
+二쇱쓽
+
+### app_search_keyword (10 rows)
+keyword | target_id | weight
+------------------------------------------------------------------------
+?곗쑀??| 16 | 100
+?쒓퍚?대떖由곗슦?좏뙥 | 18 | 100
+?앸같?곸옄 | 19 | 100
+?由ъ꽍?곹뙋 | 760 | 100
+?섏꽍 | 759 | 100
+??몄옍 | 758 | 100
+?꾨퉬?쒓퍚(?댁뿴) | 757 | 100
+梨낆긽?좊━ | 756 | 100
+轅?⑷린 | 755 | 100
+移쇰씪???| 754 | 100
+
+### app_region_ordinance (5 rows)
+region_id | sido_name | sigungu_name | summary
+------------------------------------------------------------------------
+B000392 | 寃쎄린??| 媛?됯뎔 | ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾쇱쓽 諛곗텧諛⑸쾿)
+???앺솢?먭린臾?諛곗텧?먭? ?앺솢?먭린臾쇱쓣 諛곗텧?섎젮
+B000368 | 寃쎄린??| 怨좎뼇???뺤뼇援?| ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾쇱쓽 諛곗텧 ??
+???앺솢?먭린臾쇱쓣 諛곗텧?섎뒗 ???댄븯 ?쒖깮?쒗룓湲?
+B000495 | 媛뺤썝?밸퀎?먯튂??| 媛뺣쫱??| ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾?諛곗텧?먯쓽 泥섎━?묒“ ??
+???앺솢?먭린臾?諛곗텧?먮뒗 踰???
+1
+B000509 | 媛뺤썝?밸퀎?먯튂??| 怨좎꽦援?| ?먭린臾?愿由ъ“濡
+??議??먭린臾쇰같異쒖옄??泥섎━?묒“)
+踰???
+15
+議?諛???
+24
+議곗젣
+1
+B000496 | 媛뺤썝?밸퀎?먯튂??| ?숉빐??| ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾?諛곗텧?먯쓽 泥섎━ ?묒“ ??
+???앺솢?먭린臾쇱씠 諛곗텧?섎뒗 ?좎???
+
+### app_common_guide
+guide_id | title | desc
+------------------------------------------------------------------------
+ecycle | ?먭??꾩젣??諛곗텧 諛⑸쾿 (臾댁긽 諛⑸Ц ?섍굅) | TV, ?됱옣怨? ?명긽湲? ?먯뼱而????먭??꾩젣?덉? ?뺣??먯꽌 ?댁쁺?섎뒗 'E-?쒗솚嫄곕쾭?뚯뒪'瑜???
+
+### meta
+key | value
+------------------------------------------------------------------------
+app_db_finalized_at | 2026-05-14T03:32:39+00:00
+app_item_rule_count | 730
+app_region_ordinance_count | 252
+disclaimer_robots | no /front/search or /front/support
+region_law_allowed_paths | /front/bbsList.do,/front/ajaxActNrRegionList.do,/f
+region_law_completed_at | 2026-05-14T02:59:44+00:00
+region_law_disallowed_paths_not_used | /front/search,/front/support
+region_law_source | https://wasteguide.or.kr
+region_law_started_at | 2026-05-14T02:55:20+00:00
+scraped_at_utc_complete | 2026-05-14T03:32:38+00:00
+scraped_at_utc_detail_phase | 2026-05-14T03:26:15+00:00
+scraped_at_utc_list_done | 2026-05-14T03:06:32+00:00
+scraped_at_utc_start | 2026-05-14T01:54:59+00:00
+scraped_kind | dictionary_only_no_regional_support_path
+source | https://wasteguide.or.kr
+
+### dictionary_item (raw, 3 rows)
+ni_idx | title | categories | list_page | detail_url | detail_html | disposal_text | fetched_at
+16 | ?곗쑀??| ?ы솢?⑺룓湲곕Ъ | 46 | https://wasteguide.or.kr/front/discharge | <div class="dispose_detail dictionary_in | 諛곗텧諛⑸쾿
+쨌 醫낆씠?⑹쓣 諛곗텧???뚯뿉???쇰컲?⑷낵 硫멸퇏?⑹쑝濡?援щ텇?섏? ?딄퀬 醫?| 2026-05-14T03:06:32+00:00
+18 | ?쒓퍚???щ┛ ?곗쑀??| ?ы솢?⑺룓湲곕Ъ | 46 | https://wasteguide.or.kr/front/discharge | <div class="dispose_detail dictionary_in | 諛곗텧諛⑸쾿
+쨌 醫낆씠?⑹쓣 諛곗텧???뚯뿉???쇰컲?⑷낵 硫멸퇏?⑹쑝濡?援щ텇?섏? ?딄퀬 醫?| 2026-05-14T03:06:32+00:00
+19 | ?앸같 ?곸옄 | ?ы솢?⑺룓湲곕Ъ | 46 | https://wasteguide.or.kr/front/discharge | <div class="dispose_detail dictionary_in | 諛곗텧諛⑸쾿
+쨌혻?앸같 ?곸옄???쇰컲 醫낆씠? 援щ텇?섏뿬 醫낆씠瑜섏닔嫄고븿?쇰줈 諛곗텧?⑸땲??| 2026-05-14T03:06:32+00:00
+
+### region_ordinance (raw, 3 rows)
+region_id | parent_region_id | sido_name | sigungu_name | region_code | source_url | ordinance_html | ordinance_text | fetched_at
+B000392 | A000032 | 寃쎄린??| 媛?됯뎔 | 41820 | https://wasteguide.or.kr/front/bbsList.d | 
+
+
+
+
+
+
+
+
+
+
+
+	
+
+		
+
+			<div class="bltit" | ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾쇱쓽 諛곗텧諛⑸쾿)
+???앺솢?먭린臾?諛곗텧?먭? ??| 2026-05-14T02:26:40+00:00
+B000368 | A000032 | 寃쎄린??| 怨좎뼇???뺤뼇援?| 41281 | https://wasteguide.or.kr/front/bbsList.d | 
+
+
+
+
+
+
+
+
+
+
+
+	
+
+		
+
+			<div class="bltit" | ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾쇱쓽 諛곗텧 ??
+???앺솢?먭린臾쇱쓣 諛곗텧?섎뒗  | 2026-05-14T02:26:41+00:00
+B000495 | A000039 | 媛뺤썝?밸퀎?먯튂??| 媛뺣쫱??| 51150 | https://wasteguide.or.kr/front/bbsList.d | 
+
+
+
+
+
+
+
+
+
+
+
+	
+
+		
+
+			<div class="bltit" | ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾?諛곗텧?먯쓽 泥섎━?묒“ ??
+???앺솢?먭린臾? | 2026-05-14T02:29:05+00:00
+
+
+--- Samples from wasteguide_dictionary.sqlite3 ---
+
+### app_item_rule (5 rows)
+item_id | item_name | primary_category | discharge | summary
+------------------------------------------------------------------------
+124 | AA 嫄댁쟾吏 | ?ы솢?⑺룓湲곕Ъ | 쨌혻 AA嫄댁쟾吏???꾩? ?섍굅?⑥쑝濡?諛곗텧?⑸땲?? | 遺꾨쪟: ?ы솢?⑺룓湲곕Ъ
+쨌혻 AA嫄댁쟾吏???꾩? ?섍굅?⑥쑝濡?諛곗텧?⑸땲??
+二쇱쓽: 쨌 諛섎뱶???ы솢??
+634 | AAA嫄댁쟾吏 | ?ы솢?⑺룓湲곕Ъ | 쨌혻 AAA嫄댁쟾吏???꾩??섍굅?⑥쑝濡?諛곗텧?⑸땲?? | 遺꾨쪟: ?ы솢?⑺룓湲곕Ъ
+쨌혻 AAA嫄댁쟾吏???꾩??섍굅?⑥쑝濡?諛곗텧?⑸땲??
+二쇱쓽: 쨌 諛섎뱶???ы솢??
+336 | CD | ?쇰컲?먭린臾?| 쨌 CD??醫낅웾?쒕큺?щ줈 諛곗텧?⑸땲?? | 遺꾨쪟: ?쇰컲?먭린臾?
+쨌 CD??醫낅웾?쒕큺?щ줈 諛곗텧?⑸땲??
+635 | CR 嫄댁쟾吏 | ?ы솢?⑺룓湲곕Ъ | 쨌 혻CR 嫄댁쟾吏???꾩??섍굅?⑥쑝濡?諛곗텧?⑸땲?? | 遺꾨쪟: ?ы솢?⑺룓湲곕Ъ
+쨌 혻CR 嫄댁쟾吏???꾩??섍굅?⑥쑝濡?諛곗텧?⑸땲??
+二쇱쓽: 쨌 諛섎뱶???ы솢??
+137 | LED | ?ы솢?⑺룓湲곕Ъ | 쨌혻 LED議곕챸(?꾧뎄?? 吏곴???? ?뺢킅???섍굅?⑥쑝濡?諛곗텧?⑸땲?? | 遺꾨쪟: ?ы솢?⑺룓湲곕Ъ
+쨌혻 LED議곕챸(?꾧뎄?? 吏곴???? ?뺢킅???섍굅?⑥쑝濡?諛곗텧?⑸땲??
+二쇱쓽
+
+### app_search_keyword (10 rows)
+keyword | target_id | weight
+------------------------------------------------------------------------
+?곗쑀??| 16 | 100
+?쒓퍚?대떖由곗슦?좏뙥 | 18 | 100
+?앸같?곸옄 | 19 | 100
+?由ъ꽍?곹뙋 | 760 | 100
+?섏꽍 | 759 | 100
+??몄옍 | 758 | 100
+?꾨퉬?쒓퍚(?댁뿴) | 757 | 100
+梨낆긽?좊━ | 756 | 100
+轅?⑷린 | 755 | 100
+移쇰씪???| 754 | 100
+
+### app_region_ordinance (5 rows)
+region_id | sido_name | sigungu_name | summary
+------------------------------------------------------------------------
+B000392 | 寃쎄린??| 媛?됯뎔 | ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾쇱쓽 諛곗텧諛⑸쾿)
+???앺솢?먭린臾?諛곗텧?먭? ?앺솢?먭린臾쇱쓣 諛곗텧?섎젮
+B000368 | 寃쎄린??| 怨좎뼇???뺤뼇援?| ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾쇱쓽 諛곗텧 ??
+???앺솢?먭린臾쇱쓣 諛곗텧?섎뒗 ???댄븯 ?쒖깮?쒗룓湲?
+B000495 | 媛뺤썝?밸퀎?먯튂??| 媛뺣쫱??| ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾?諛곗텧?먯쓽 泥섎━?묒“ ??
+???앺솢?먭린臾?諛곗텧?먮뒗 踰???
+1
+B000509 | 媛뺤썝?밸퀎?먯튂??| 怨좎꽦援?| ?먭린臾?愿由ъ“濡
+??議??먭린臾쇰같異쒖옄??泥섎━?묒“)
+踰???
+15
+議?諛???
+24
+議곗젣
+1
+B000496 | 媛뺤썝?밸퀎?먯튂??| ?숉빐??| ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾?諛곗텧?먯쓽 泥섎━ ?묒“ ??
+???앺솢?먭린臾쇱씠 諛곗텧?섎뒗 ?좎???
+
+### app_common_guide ??skip (no such table: app_common_guide)
+
+### meta
+key | value
+------------------------------------------------------------------------
+app_db_finalized_at | 2026-05-14T03:32:39+00:00
+app_item_rule_count | 730
+app_region_ordinance_count | 252
+disclaimer_robots | no /front/search or /front/support
+region_law_allowed_paths | /front/bbsList.do,/front/ajaxActNrRegionList.do,/f
+region_law_completed_at | 2026-05-14T02:59:44+00:00
+region_law_disallowed_paths_not_used | /front/search,/front/support
+region_law_source | https://wasteguide.or.kr
+region_law_started_at | 2026-05-14T02:55:20+00:00
+scraped_at_utc_complete | 2026-05-14T03:32:38+00:00
+scraped_at_utc_detail_phase | 2026-05-14T03:26:15+00:00
+scraped_at_utc_list_done | 2026-05-14T03:06:32+00:00
+scraped_at_utc_start | 2026-05-14T01:54:59+00:00
+scraped_kind | dictionary_only_no_regional_support_path
+source | https://wasteguide.or.kr
+
+### dictionary_item (raw, 3 rows)
+ni_idx | title | categories | list_page | detail_url | detail_html | disposal_text | fetched_at
+16 | ?곗쑀??| ?ы솢?⑺룓湲곕Ъ | 46 | https://wasteguide.or.kr/front/discharge | <div class="dispose_detail dictionary_in | 諛곗텧諛⑸쾿
+쨌 醫낆씠?⑹쓣 諛곗텧???뚯뿉???쇰컲?⑷낵 硫멸퇏?⑹쑝濡?援щ텇?섏? ?딄퀬 醫?| 2026-05-14T03:06:32+00:00
+18 | ?쒓퍚???щ┛ ?곗쑀??| ?ы솢?⑺룓湲곕Ъ | 46 | https://wasteguide.or.kr/front/discharge | <div class="dispose_detail dictionary_in | 諛곗텧諛⑸쾿
+쨌 醫낆씠?⑹쓣 諛곗텧???뚯뿉???쇰컲?⑷낵 硫멸퇏?⑹쑝濡?援щ텇?섏? ?딄퀬 醫?| 2026-05-14T03:06:32+00:00
+19 | ?앸같 ?곸옄 | ?ы솢?⑺룓湲곕Ъ | 46 | https://wasteguide.or.kr/front/discharge | <div class="dispose_detail dictionary_in | 諛곗텧諛⑸쾿
+쨌혻?앸같 ?곸옄???쇰컲 醫낆씠? 援щ텇?섏뿬 醫낆씠瑜섏닔嫄고븿?쇰줈 諛곗텧?⑸땲??| 2026-05-14T03:06:32+00:00
+
+### region_ordinance (raw, 3 rows)
+region_id | parent_region_id | sido_name | sigungu_name | region_code | source_url | ordinance_html | ordinance_text | fetched_at
+B000392 | A000032 | 寃쎄린??| 媛?됯뎔 | 41820 | https://wasteguide.or.kr/front/bbsList.d | 
+
+
+
+
+
+
+
+
+
+
+
+	
+
+		
+
+			<div class="bltit" | ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾쇱쓽 諛곗텧諛⑸쾿)
+???앺솢?먭린臾?諛곗텧?먭? ??| 2026-05-14T02:26:40+00:00
+B000368 | A000032 | 寃쎄린??| 怨좎뼇???뺤뼇援?| 41281 | https://wasteguide.or.kr/front/bbsList.d | 
+
+
+
+
+
+
+
+
+
+
+
+	
+
+		
+
+			<div class="bltit" | ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾쇱쓽 諛곗텧 ??
+???앺솢?먭린臾쇱쓣 諛곗텧?섎뒗  | 2026-05-14T02:26:41+00:00
+B000495 | A000039 | 媛뺤썝?밸퀎?먯튂??| 媛뺣쫱??| 51150 | https://wasteguide.or.kr/front/bbsList.d | 
+
+
+
+
+
+
+
+
+
+
+
+	
+
+		
+
+			<div class="bltit" | ?먭린臾?愿由ъ“濡
+??議??앺솢?먭린臾?諛곗텧?먯쓽 泥섎━?묒“ ??
+???앺솢?먭린臾? | 2026-05-14T02:29:05+00:00
+

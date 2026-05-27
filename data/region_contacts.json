@@ -1,0 +1,42 @@
+[
+  {
+    "region_code": "41285",
+    "sigungu_name": "고양시 일산동구",
+    "dept_name": "일산동구청 환경녹지과 청소행정",
+    "phone": "031-8075-6245",
+    "source_name": "고양시청",
+    "source_url": "https://www.goyang.go.kr/ilsegu"
+  },
+  {
+    "region_code": "41287",
+    "sigungu_name": "고양시 일산서구",
+    "dept_name": "일산서구청 환경녹지과 청소행정",
+    "phone": "031-8075-7241",
+    "source_name": "고양시청",
+    "source_url": "https://www.goyang.go.kr/ilsseogu"
+  },
+  {
+    "region_code": "41281",
+    "sigungu_name": "고양시 덕양구",
+    "dept_name": "덕양구청 환경녹지과 청소행정",
+    "phone": "031-8075-5245",
+    "source_name": "고양시청",
+    "source_url": "https://www.goyang.go.kr/deyangu"
+  },
+  {
+    "region_code": "11680",
+    "sigungu_name": "서울특별시 강남구",
+    "dept_name": "강남구청 환경교통국 청소행정과",
+    "phone": "02-3425-5334",
+    "source_name": "강남구청",
+    "source_url": "https://www.gangnam.go.kr"
+  },
+  {
+    "region_code": "11110",
+    "sigungu_name": "서울특별시 종로구",
+    "dept_name": "종로구청 자원순환과",
+    "phone": "02-2148-2838",
+    "source_name": "종로구청",
+    "source_url": "https://www.jongno.go.kr"
+  }
+]
