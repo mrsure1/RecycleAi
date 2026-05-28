@@ -1282,10 +1282,11 @@ private fun AdLimitReachedContent(
                     )
                 }
                 Spacer(Modifier.width(Tokens.Sp12))
+                val limit = app.trashai.data.RemoteConfigManager.dailyScanLimit
                 Column {
                     Text("일일 인공지능 스캔 한도 초과", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
                     Spacer(Modifier.height(Tokens.Sp4))
-                    Text("무료 인식 5회 중 5회 사용", fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
+                    Text("무료 인식 ${limit}회 중 ${limit}회 사용", fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
                 }
             }
             Spacer(Modifier.height(Tokens.Sp16))
@@ -1297,8 +1298,9 @@ private fun AdLimitReachedContent(
                     .background(Tokens.SurfaceMuted)
                     .padding(Tokens.Sp16)
             ) {
+                val limit = app.trashai.data.RemoteConfigManager.dailyScanLimit
                 Text(
-                    text = "오늘 제공된 무료 인공지능 스캔 5회를 모두 사용하셨습니다.\n30초 이하의 짧은 보상형 동영상 광고를 시청하시면 즉시 스캔 5회가 충전됩니다.",
+                    text = "오늘 제공된 무료 인공지능 스캔 ${limit}회를 모두 사용하셨습니다.\n30초 이하의 짧은 보상형 동영상 광고를 시청하시면 즉시 스캔 ${limit}회가 충전됩니다.",
                     fontSize = 14.sp,
                     color = Tokens.TextSecondary,
                     lineHeight = 20.sp
@@ -1313,13 +1315,14 @@ private fun AdLimitReachedContent(
                 shape = RoundedCornerShape(Tokens.Radius12),
                 contentPadding = PaddingValues(vertical = 12.dp)
             ) {
+                val limit = app.trashai.data.RemoteConfigManager.dailyScanLimit
                 Icon(
                     imageVector = Icons.Outlined.OndemandVideo,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(Modifier.width(Tokens.Sp8))
-                Text("광고 시청하고 5회 충전", fontWeight = FontWeight.Bold)
+                Text("광고 시청하고 ${limit}회 충전", fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(Tokens.Sp8))
             OutlinedButton(

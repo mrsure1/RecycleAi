@@ -385,7 +385,7 @@ class AppState(private val appContext: Context) {
         scope.launch {
             _state.update { it.copy(sheetState = SheetState.Loading("광고 시청 완료! 스캔 분석 중…")) }
             withContext(Dispatchers.IO) {
-                app.trashai.data.ScanLimitManager.refillScanCount(appContext, 5)
+                app.trashai.data.ScanLimitManager.refillScanCount(appContext, app.trashai.data.RemoteConfigManager.dailyScanLimit)
             }
             onCapture(jpegBytes, rawLabel)
         }
