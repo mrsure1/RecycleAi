@@ -239,7 +239,7 @@ fun RegionOfficialInfoSection(
 
             if (hasContact) {
                 val c = contact!!
-                Spacer(Modifier.height(Tokens.Sp4))
+                Spacer(Modifier.height(Tokens.Sp8))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -250,20 +250,58 @@ fun RegionOfficialInfoSection(
                                 context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse(uri)))
                             }
                         }
-                        .padding(horizontal = Tokens.Sp16, vertical = Tokens.Sp12),
+                        .padding(horizontal = Tokens.Sp16, vertical = Tokens.Sp16),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Outlined.Phone, null, tint = Tokens.Primary, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.width(Tokens.Sp12))
                     Column(Modifier.weight(1f)) {
-                        Text(c.deptName, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Tokens.TextPrimary)
-                        Text(c.phone, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Tokens.Primary)
-                        c.sourceName?.let {
-                            Text(it, fontSize = 11.sp, color = Tokens.TextSecondary)
+                        // 기관명과 부서명을 결합하여 상단에 정돈된 텍스트로 표시
+                        val agencyInfo = buildString {
+                            if (!c.sourceName.isNullOrBlank()) {
+                                append(c.sourceName)
+                            }
+                            if (!c.deptName.isNullOrBlank()) {
+                                if (isNotEmpty()) append(" • ")
+                                append(c.deptName)
+                            }
+                        }
+                        if (agencyInfo.isNotEmpty()) {
+                            Text(
+                                text = agencyInfo,
+                                fontSize = 12.sp,
+                                color = Tokens.TextSecondary,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(Modifier.height(Tokens.Sp6))
+                        }
+
+                        // 전화번호와 수화기 아이콘을 한 행에 정렬하여 시선 분산 방지
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.Phone,
+                                contentDescription = null,
+                                tint = Tokens.Primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(Tokens.Sp8))
+                            Text(
+                                text = c.phone,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Tokens.Primary
+                            )
                         }
                     }
                     if (!c.telUri.isNullOrBlank()) {
-                        Text("전화", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Tokens.Primary)
+                        // 텍스트 형태에서 클릭 가능한 버튼 느낌이 나도록 배경과 패딩 추가
+                        Text(
+                            text = "전화",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Tokens.Primary,
+                            modifier = Modifier
+                                .background(Color.White, RoundedCornerShape(Tokens.Radius8))
+                                .padding(horizontal = Tokens.Sp12, vertical = Tokens.Sp6)
+                        )
                     }
                 }
             }
