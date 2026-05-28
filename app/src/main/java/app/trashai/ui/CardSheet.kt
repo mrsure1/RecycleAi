@@ -176,38 +176,15 @@ fun ItemRuleBody(
         )
     }
 
-    Spacer(Modifier.height(Tokens.Sp24))
-
-    // ---- AdMob Banner Placeholder (차후 광고 탑재 지면) -------------------------
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .clip(RoundedCornerShape(Tokens.Radius8))
-            .background(Tokens.SurfaceMuted)
-            .border(1.dp, Tokens.Divider.copy(alpha = 0.5f), RoundedCornerShape(Tokens.Radius8)),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Info,
-                contentDescription = null,
-                tint = Tokens.TextSecondary.copy(alpha = 0.6f),
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(Modifier.width(Tokens.Sp8))
-            Text(
-                "광고 지면",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = Tokens.TextSecondary.copy(alpha = 0.6f),
-                letterSpacing = 1.sp
-            )
-        }
-    }
+    // ---- [광고 게재 위치] AdMob 배너 광고 삽입 지점 ----------------------------
+    // TODO: AdMob SDK 연동 완료 후 이 위치에 BannerAd 컴포저블을 삽입하세요.
+    // 예시:
+    //   BannerAdView(
+    //       adUnitId = "ca-app-pub-xxxx/xxxxxx",
+    //       modifier = Modifier.fillMaxWidth().height(60.dp)
+    //   )
+    // 현재는 무료 버전이므로 광고 지면을 사용자에게 노출하지 않습니다.
+    // ---------------------------------------------------------------------------
 }
 
 @Composable
