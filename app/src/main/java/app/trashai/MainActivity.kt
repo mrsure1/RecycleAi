@@ -111,6 +111,8 @@ private fun TrashAiApp() {
 
     LaunchedEffect(Unit) { 
         viewModel.preloadDb() 
+        // 앱 시작 시 Firebase Remote Config 서버에서 최신 설정값(한도 제한 여부 등)을 즉시 Fetch합니다.
+        app.trashai.data.RemoteConfigManager.fetchAndActivate(context)
         locationPermLauncher.launch(
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
