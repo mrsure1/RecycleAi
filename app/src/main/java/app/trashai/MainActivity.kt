@@ -329,6 +329,7 @@ private fun TrashAiApp() {
                             onDismiss = { viewModel.dismissSheet() },
                             onShowInfo = { viewModel.showInfo(it) },
                             onTabChange = { scope.launch { scrollState.scrollTo(0) } },
+                            onRefill = { jpeg, label -> viewModel.refillAndRetry(jpeg, label) }
                         )
                     }
                 }
@@ -458,6 +459,7 @@ private fun BottomCardContent(
     onDismiss: () -> Unit,
     onShowInfo: (String) -> Unit,
     onTabChange: () -> Unit = {},
+    onRefill: (ByteArray, String?) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         when (val s = state.sheetState) {
@@ -469,8 +471,8 @@ private fun BottomCardContent(
                 AdLimitReachedContent(
                     jpegBytes = s.jpegBytes,
                     rawLabel = s.rawLabel,
-                    onRefill = { viewModel.refillAndRetry(s.jpegBytes, s.rawLabel) },
-                    onSearchManually = { viewModel.startAskUser() }
+                    onRefill = { onRefill(s.jpegBytes, s.rawLabel) },
+                    onSearchManually = onAskAi
                 )
             }
 
