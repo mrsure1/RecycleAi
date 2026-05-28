@@ -417,10 +417,10 @@ private fun StepCard(
     val cleanBody = body.trim().replaceFirst(bulletRegex, "")
 
     val fontSize = (13 + (7 * fraction)).sp
-    val iconSize = (28 + (28 * fraction)).dp
+    val iconSize = (14 + (14 * fraction)).dp // 기존 대비 1/2 수준으로 축소 (확장 시 28dp, 축소 시 14dp)
     val verticalPadding = (8 + (10 * fraction)).dp
     val horizontalPadding = (10 + (8 * fraction)).dp
-    val numFontSize = (14 + (8 * fraction)).sp
+    val numFontSize = (10 + (4 * fraction)).sp // 줄어든 아이콘 크기에 맞춰 폰트 크기 조정
 
     Row(
         modifier = modifier
@@ -431,13 +431,12 @@ private fun StepCard(
                 spotColor = Color(0x1A000000)
             )
             .background(
-                if (number == 1 && fraction > 0.3f) Tokens.PrimarySoft.copy(alpha = 0.5f)
-                else Tokens.Surface,
+                Tokens.Surface,
                 RoundedCornerShape(Tokens.Radius12)
             )
             .border(
                 width = (1 + (0.5f * fraction)).dp,
-                color = if (number == 1 && fraction > 0.3f) Tokens.Primary else Tokens.Divider,
+                color = Tokens.Divider,
                 shape = RoundedCornerShape(Tokens.Radius12)
             )
             .padding(horizontal = horizontalPadding, vertical = verticalPadding),
@@ -449,21 +448,18 @@ private fun StepCard(
             modifier = Modifier
                 .size(iconSize)
                 .clip(CircleShape)
-                .background(
-                    if (number == 1) Tokens.Primary
-                    else Tokens.PrimarySoft
-                ),
+                .background(Tokens.PrimarySoft),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = stepIcon,
                 contentDescription = null,
-                tint = if (number == 1) Color.White.copy(alpha = 0.25f) else Tokens.Primary.copy(alpha = 0.2f),
+                tint = Tokens.Primary.copy(alpha = 0.2f),
                 modifier = Modifier.fillMaxSize(0.6f)
             )
             Text(
                 text = "$number",
-                color = if (number == 1) Color.White else Tokens.Primary,
+                color = Tokens.Primary,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = numFontSize,
             )
