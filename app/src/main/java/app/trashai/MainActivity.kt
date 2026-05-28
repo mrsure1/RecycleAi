@@ -161,6 +161,19 @@ private fun TrashAiApp() {
                     },
                     modifier = Modifier.weight(1f),
                 )
+                
+                // 원격 한도 설정 활성화 시에만 고급스러운 글래스모피즘 남은 횟수 배지 노출
+                if (app.trashai.data.RemoteConfigManager.limitEnabled) {
+                    val todayCount = app.trashai.data.ScanLimitManager.getTodayScanCount(context)
+                    val limit = app.trashai.data.RemoteConfigManager.dailyScanLimit
+                    val remaining = (limit - todayCount).coerceAtLeast(0)
+                    
+                    RemainingScanPill(
+                        remaining = remaining,
+                        limit = limit
+                    )
+                }
+
                 IconChip(
                     icon = Icons.Outlined.Chat,
                     label = "인공지능 묻기",
@@ -1341,5 +1354,47 @@ private fun AdLimitReachedContent(
                 Text("직접 텍스트로 검색하기 (무료)", fontWeight = FontWeight.SemiBold)
             }
         }
+    }
+}
+
+/**
+ * 한도 제한 활성화 시 노출되는 글래스모피즘(Glassmorphism) 스타일의 남은 횟수 표시 배지입니다.
+ * 
+ * [나중에 디자인을 마음대로 수정하고 싶을 때 가이드]
+ * 1. 배경 투명도(Alpha): White.copy(alpha = 0.12f) 부분의 수치를 0.0f(완전투명) ~ 1.0f(불투명) 사이로 조절하세요.
+ * 2. 빛반사 테두리 선명도: border(0.5.dp, Color.White.copy(alpha = 0.25f)) 의 두께(dp)와 투명도(alpha)를 조절하세요.
+ * 3. 둥글기 강도(Rounded Corners): RoundedCornerShape(Tokens.Radius24) 의 토큰 값을 취향대로 변경하세요.
+ * 4. 텍스트 색상 및 스타일: Color.White, fontSize = 11.sp, FontWeight.ExtraBold 부분을 원하시는 값으로 자유롭게 수정 가능합니다.
+ * 5. 아이콘 테마 및 색상: tint 속성을 통해 잔여 횟수가 1회 이하로 떨어졌을 때 경고 색상(WarningText)으로 분기되는 규칙을 변경할 수 있습니다.
+ */
+@Composable
+private fun RemainingScanPill(
+    remaining: Int,
+    limit: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(Tokens.Radius24))
+            .background(Color.White.copy(alpha = 0.12f))
+            .border(0.5.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(Tokens.Radius24))
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Analytics,
+            contentDescription = null,
+            tint = if (remaining <= 1) Tokens.WarningText else Tokens.NeonGreen,
+            modifier = Modifier.size(14.dp)
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            text = "남음: ${remaining}회",
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-0.5).sp
+        )
     }
 }
