@@ -442,24 +442,17 @@ private fun StepCard(
             .padding(horizontal = horizontalPadding, vertical = verticalPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. 둥근 원 안에 해당 단계 아이콘을 반투명하게 배치하고, 그 위에 단계 숫자를 겹쳐서 공간활용 극대화
-        val stepIcon = getStepIcon(cleanBody)
+        // 1. 아이콘을 제외하고 파란색 원형 배경 내에 단계 숫자만 깔끔하게 노출하도록 수정
         Box(
             modifier = Modifier
                 .size(iconSize)
                 .clip(CircleShape)
-                .background(Tokens.PrimarySoft),
+                .background(Tokens.Accent),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = stepIcon,
-                contentDescription = null,
-                tint = Tokens.Primary.copy(alpha = 0.2f),
-                modifier = Modifier.fillMaxSize(0.6f)
-            )
             Text(
                 text = "$number",
-                color = Tokens.Primary,
+                color = Color.White,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = numFontSize,
             )
