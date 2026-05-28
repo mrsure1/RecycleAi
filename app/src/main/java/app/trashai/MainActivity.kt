@@ -1390,7 +1390,7 @@ private fun RemainingScanPill(
         )
         Spacer(Modifier.width(4.dp))
         Text(
-            text = "남음: ${remaining}회",
+            text = "오늘 분석 기회: ${remaining}회",
             color = Color.White,
             fontSize = 11.sp,
             fontWeight = FontWeight.ExtraBold,
