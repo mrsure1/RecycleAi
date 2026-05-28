@@ -61,6 +61,8 @@ import app.trashai.clarify.ClarificationChips
 import app.trashai.ui.CommonGuideSection
 import app.trashai.ui.InfoSheetContent
 import app.trashai.ui.ItemRuleBody
+import app.trashai.ui.RegionOfficialInfoSection
+import app.trashai.ui.TextWithDialablePhones
 import app.trashai.ui.Tokens
 import app.trashai.vision.CameraScreen
 import androidx.compose.ui.text.buildAnnotatedString
@@ -135,7 +137,7 @@ private fun TrashAiApp() {
             CameraScreen(
                 onCaptureBytes = { bytes, label -> scope.launch { viewModel.onCapture(bytes, label) } },
                 capturedJpeg = state.lastCapturedJpeg,
-                sigunguCode = state.regionOrdinance?.regionId ?: "1100000000",
+                sigunguCode = state.regionOrdinance?.regionCode ?: "1100000000",
             )
 
             // Top status bar — pin pill (left) + AI ask (right)
@@ -451,7 +453,13 @@ private fun BottomCardContent(
             is SheetState.Loading -> AnimatedLoadingScreen(s.message)
 
             is SheetState.Item -> {
-                ItemRuleBody(s.rule, regionLabel = state.regionLabel, commonGuide = s.commonGuide, regionOrdinance = state.regionOrdinance)
+                ItemRuleBody(
+                    s.rule,
+                    regionLabel = state.regionLabel,
+                    commonGuide = s.commonGuide,
+                    regionOrdinance = state.regionOrdinance,
+                    regionExtras = state.regionExtras,
+                )
                 if (s.alternates.isNotEmpty()) {
                     Spacer(Modifier.height(Tokens.Sp16))
                     ClarificationChips(
@@ -516,14 +524,37 @@ private fun BottomCardContent(
                     )
 
                     if (isDuplicate) {
-                        // 더 긴(상세한) 내용을 우선적으로 표시
                         val longerText = if (discharge!!.length >= summary!!.length) discharge else summary
-                        Text(longerText, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, lineHeight = 20.sp)
+                        TextWithDialablePhones(
+                            text = longerText,
+                            style = androidx.compose.ui.text.TextStyle(
+                                color = Tokens.TextPrimary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                lineHeight = 20.sp,
+                            ),
+                        )
                     } else {
-                        summary?.let { Text(it, color = Tokens.TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
+                        summary?.let {
+                            TextWithDialablePhones(
+                                text = it,
+                                style = androidx.compose.ui.text.TextStyle(
+                                    color = Tokens.TextPrimary,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                ),
+                            )
+                        }
                         discharge?.let {
                             Spacer(Modifier.height(Tokens.Sp6))
-                            Text(it, color = Tokens.TextSecondary, fontSize = Tokens.CaptionSize, lineHeight = 16.sp)
+                            TextWithDialablePhones(
+                                text = it,
+                                style = androidx.compose.ui.text.TextStyle(
+                                    color = Tokens.TextSecondary,
+                                    fontSize = Tokens.CaptionSize,
+                                    lineHeight = 16.sp,
+                                ),
+                            )
                         }
                     }
                 }
@@ -532,6 +563,15 @@ private fun BottomCardContent(
                 // E-순환거버넌스 공통 안내 렌더링 추가
                 s.commonGuide?.let { guide ->
                     CommonGuideSection(guide = guide)
+                    Spacer(Modifier.height(Tokens.Sp16))
+                }
+
+                if (state.regionLabel != "위치 확인 중...") {
+                    RegionOfficialInfoSection(
+                        regionLabel = state.regionLabel,
+                        regionOrdinance = state.regionOrdinance,
+                        regionExtras = state.regionExtras,
+                    )
                     Spacer(Modifier.height(Tokens.Sp16))
                 }
 

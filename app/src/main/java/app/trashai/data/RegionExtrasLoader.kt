@@ -1,7 +1,6 @@
 package app.trashai.data
 
 import android.content.Context
-import app.trashai.supabase.MoisDisposalClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -10,20 +9,17 @@ data class RegionExtras(
     val contact: RegionContact? = null,
 )
 
+/**
+ * Loads region MOIS schedules and contacts from the bundled SQLite only (offline-first).
+ * MOIS data is populated at build time via [scripts/import_region_extras.py].
+ */
 object RegionExtrasLoader {
 
-    suspend fun load(
-        context: Context,
-        regionCode: String?,
-        moisClient: MoisDisposalClient = MoisDisposalClient(),
-    ): RegionExtras = withContext(Dispatchers.IO) {
+    suspend fun load(context: Context, regionCode: String?): RegionExtras = withContext(Dispatchers.IO) {
         if (regionCode.isNullOrBlank()) return@withContext RegionExtras()
         val db = WasteGuideDb.open(context)
         val contact = runCatching { db.regionContactByCode(regionCode) }.getOrNull()
-        var mois = runCatching { db.moisDisposalByRegionCode(regionCode) }.getOrNull().orEmpty()
-        if (mois.isEmpty() && moisClient.isConfigured) {
-            mois = moisClient.fetchBySigunguCode(regionCode)
-        }
+        val mois = runCatching { db.moisDisposalByRegionCode(regionCode) }.getOrNull().orEmpty()
         RegionExtras(
             moisSchedules = mois.filter { it.hasSchedule || !it.disposalMethod.isNullOrBlank() },
             contact = contact,

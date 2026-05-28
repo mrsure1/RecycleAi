@@ -143,6 +143,8 @@ fun SQLiteDatabase.commonGuideById(guideId: String): CommonGuide? =
 
 data class RegionOrdinance(
     val regionId: String,
+    /** 행정표준 시군구 코드 (행안부 API·MOIS·문의처 매칭용). */
+    val regionCode: String?,
     val sidoName: String,
     val sigunguName: String,
     val ordinanceTitle: String,
@@ -154,13 +156,14 @@ data class RegionOrdinance(
 
 private fun android.database.Cursor.toRegionOrdinance() = RegionOrdinance(
     regionId = getString(0),
-    sidoName = getString(1),
-    sigunguName = getString(2),
-    ordinanceTitle = getString(3),
-    ordinanceText = getString(4),
-    appSummary = getString(5),
-    sourceName = getString(6),
-    sourceUrl = getString(7),
+    regionCode = getString(1),
+    sidoName = getString(2),
+    sigunguName = getString(3),
+    ordinanceTitle = getString(4),
+    ordinanceText = getString(5),
+    appSummary = getString(6),
+    sourceName = getString(7),
+    sourceUrl = getString(8),
 )
 
 fun SQLiteDatabase.ordinanceByRegion(sido: String, sigungu: String): RegionOrdinance? {
@@ -173,7 +176,7 @@ fun SQLiteDatabase.ordinanceByRegion(sido: String, sigungu: String): RegionOrdin
         val res = runCatching {
             rawQuery(
                 """
-                SELECT region_id, sido_name, sigungu_name, ordinance_title, ordinance_text, app_summary, source_name, source_url
+                SELECT region_id, region_code, sido_name, sigungu_name, ordinance_title, ordinance_text, app_summary, source_name, source_url
                 FROM app_region_ordinance
                 WHERE sigungu_name LIKE ? OR sido_name LIKE ?
                 LIMIT 1

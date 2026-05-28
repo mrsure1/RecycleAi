@@ -2,7 +2,7 @@ package app.trashai.data
 
 import android.database.sqlite.SQLiteDatabase
 
-/** 행안부 Open API 기반 지역별 배출 요일·시간 (로컬 또는 Supabase 동기화). */
+/** 행안부 Open API 기반 지역별 배출 요일·시간 (빌드 시 SQLite [app_mois_disposal]에 적재). */
 data class MoisDisposalRule(
     val sigunguCode: String,
     val sidoName: String?,

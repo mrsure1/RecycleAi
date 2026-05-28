@@ -135,7 +135,7 @@ private fun CameraWithLens(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // ML Kit가 감지한 트래킹 ID별로 비동기 Supabase 벡터 검색을 수행하여 라벨 캐싱
+    // ML Kit 트래킹 ID별 Gemini/로컬 키워드 검색으로 라벨 캐싱
     LaunchedEffect(latestResult, analysisSession) {
         val result = latestResult ?: return@LaunchedEffect
         val sessionAtStart = analysisSession
@@ -152,12 +152,12 @@ private fun CameraWithLens(
                         cropToJpeg(src, det.bbox)
                     }
                     if (bytes != null && sessionAtStart == analysisSession) {
-                        Log.d("CameraWithLens", "TID $tid 분석 시작 - 이미지 크롭 크기: ${bytes.size} bytes. Supabase 요청 중...")
+                        Log.d("CameraWithLens", "TID $tid 분석 시작 - 이미지 크롭 크기: ${bytes.size} bytes. Gemini 요청 중...")
                         when (val apiRes = supabase.searchTrashVector(bytes, sigunguCode, det.rawMlKitLabel)) {
                             is app.trashai.supabase.SupabaseResult.Ok -> {
                                 if (sessionAtStart != analysisSession) return@launch
                                 val topMatch = apiRes.value.firstOrNull()
-                                Log.d("CameraWithLens", "TID $tid Supabase 응답 성공 - 최고 매칭: ${topMatch?.item_name} (유사도: ${topMatch?.similarity})")
+                                Log.d("CameraWithLens", "TID $tid 분석 성공 - 최고 매칭: ${topMatch?.item_name} (유사도: ${topMatch?.similarity})")
                                 if (topMatch != null && topMatch.similarity >= 0.35) {
                                     trackingLabels[tid] = topMatch.item_name
                                 } else {
@@ -166,7 +166,7 @@ private fun CameraWithLens(
                             }
                             else -> {
                                 if (sessionAtStart != analysisSession) return@launch
-                                Log.w("CameraWithLens", "TID $tid Supabase API 실패: $apiRes")
+                                Log.w("CameraWithLens", "TID $tid 분석 API 실패: $apiRes")
                                 trackingLabels[tid] = "확인 불가"
                             }
                         }

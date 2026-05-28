@@ -1,117 +1,116 @@
 # ♻️ RecycleAI (리사이클AI)
 
-> **"카메라로 비추기만 하세요. AI가 쉽고 완벽한 분리수거 방법을 알려드립니다."**
->
-> **RecycleAI**는 스마트폰 카메라를 통해 생활폐기물과 재활용품을 실시간으로 감지하고, 해당 품목의 올바른 분리배출 방법과 지역별 배출 조례를 즉시 안내해 주는 모바일 지능형 서비스입니다. 특히 스마트폰 사용에 익숙지 않은 60대 고령층 사용자를 배려한 직관적인 UI/UX 디자인과 하이브리드 비전 아키텍처를 특징으로 합니다.
+> **카메라로 비추기만 하세요. AI가 우리 동네 기준으로 분리배출을 안내합니다.**
+
+Android 네이티브(Compose) 앱입니다. 실시간 카메라로 물건을 인식하고, **번들 SQLite**에 담긴 공공 품목·지자체 조례·배출 일정으로 안내 카드를 만듭니다. 애매한 경우에만 **Google Gemini**로 사진에서 한글 키워드를 뽑은 뒤, 같은 DB로 다시 매칭합니다.
 
 ---
 
-## 🆕 업데이트 내역 (Changelog)
-
-### v1.5 (2026-05)
-* **실시간 바운딩 박스 라벨링 탑재:** 실시간 사물 탐지 바운딩 박스 상단에 감지된 품목의 명칭(예: "페트병", "종이컵" 등)을 라벨로 직접 매핑하여 보여줌으로써, 탭하기 전 AI가 해당 사물을 어떻게 인식하는지 즉시 직관적으로 알 수 있습니다.
-* **텍스트 입력 영역 구분감 개선:** "AI에게 설명하기" 및 "정보 수정 제안" 화면의 입력 필드에 명확한 회색 테두리(`Tokens.Divider`)와 흰색 배경을 적용하여, 시력이 저하된 고령층도 입력 영역을 쉽게 인지하도록 개선했습니다.
-* **로딩 화면 문구 직관화:** 바운딩 박스 탭 시 노출되던 기술적이고 긴 안내 문구("AI가 벡터 분석 중...")를 단순하고 직관적인 `"AI 분석 중..."`으로 변경하여 가독성을 높였습니다.
-
----
-
-## 🗺️ 서비스 아키텍처 (Service Architecture)
+## 핵심 아키텍처
 
 ```text
-[실시간 카메라 화면 (CameraX)]
-       │
-       ▼ (실시간 이미지 프레임)
-┌──────────────────────────────────────┐
-│  온디바이스 사물 감지 (ML Kit Object)  │ ──► 초록색 네온 바운딩 박스 표시
-└──────────────────────────────────────┘
-       │
-       ├─► [1차 매칭: 로컬 SQLite DB (730개 품목)] ──► 초고속 오프라인 매칭 완료 (0.1초)
-       │
-       └─► [2차 폴백: Google Gemini 3.1 Flash Lite] ──► 미등록 품목 멀티모달 분석
-               │
-               ▼ (품목 정보 매칭)
-┌──────────────────────────────────────┐
-│       Supabase 클라우드 & API        │ ──► 행안부 GPS 위치 기반 지자체 조례 매칭
-└──────────────────────────────────────┘ ──► E-순환거버넌스 폐가전 무상수거 팁 제공
-       │
-       ▼
-[글래스모피즘 결과 카드 및 핀치 줌 뷰어]
+[CameraX + ML Kit]  녹색(자동) / 주황(드래그) 바운딩 박스
+        │
+        ├─► 로컬 SQLite — app_item_rule, app_search_keyword
+        │
+        └─► Gemini (선택) — 이미지 → 한글 키워드 → SQLite Grounding
+                │
+                ▼
+[Geocoder + 번들 SQLite]
+  app_region_ordinance · app_mois_disposal · app_region_contact · app_common_guide
+        │
+        ▼
+[바텀시트 카드 · 핀치 줌 · 전화 연결]
 ```
 
----
-
-## ✨ 핵심 기능 (Key Features)
-
-### 1. 하이브리드 비전 분석 시스템 (Hybrid Vision System)
-* **초고속 온디바이스 매칭 (ML Kit + 730개 로컬 DB):** 자주 배출하는 730개 표준 재활용 품목은 인터넷 연결 없이 기기 내부의 로컬 DB를 통해 **0.1초 내로 초고속 매칭**하여 스마트폰의 발열과 배터리 소모를 극대화로 줄여줍니다.
-* **Gemini AI 멀티모달 분석:** 로컬 DB에 없는 애매한 사물이 감지되면 구글 **Gemini API**로 폴백(Fallback)되어 고도화된 AI 비전 분석을 통해 배출 가이드를 알려줍니다.
-
-### 2. 고정밀 인터랙티브 바운딩 박스 (Bounding Box Interaction)
-* **실시간 AI 탐지 박스 (초록색):** ML Kit가 실시간으로 움직이는 사물을 추적하고 감지 상자를 표시합니다.
-* **사용자 드래그 지정 박스 (주황색):** AI가 인식을 못 하거나 겹쳐 있는 사물의 경우, 사용자가 화면에 직접 드래그하여 특정 영역을 주황색 네온 상자로 지정하면 해당 부분만 집중 분석을 요청할 수 있습니다. (32px 이하 미세 드래그 방지 필터 적용)
-
-### 3. 고령자 친화적(Accessibility) UI/UX 디자인
-* **유연한 핀치 줌 뷰어:** 작은 글씨가 불편한 고령층을 위해 결과 정보 카드를 **최대 3배까지 핀치 줌**으로 확대할 수 있습니다.
-* **화면 이탈 없는 양방향 드래그:** 화면을 크게 확대한 상태에서도 글씨가 화면 밖으로 나가지 않고, 상하 스크롤뿐만 아니라 좌우 수평 이동(Pan)을 통해 손가락 하나로 잘려진 모든 영역을 부드럽게 탐색할 수 있습니다.
-* **법률/이용약관 상단 스크롤:** 화면 하단에서 개인정보 처리방침 및 이용약관을 누를 때, 스크롤 위치가 항상 문서의 가장 맨 처음(상단)부터 노출되도록 보장합니다.
-
-### 4. 지역 맞춤형 배출 조례 연동
-* **지자체 밀착 정보:** 행정안전부의 위치 API와 연동되어 사용자가 현재 서 있는 거주 지역의 배출 시간, 배출 요일, 배출 장소를 실시간으로 결합하여 안내합니다.
-* **폐가전 무상 수거 가이드:** 무겁고 버리기 까다로운 폐가전 제품의 경우 E-순환거버넌스의 무상 방문 수거 서비스로 즉시 예약할 수 있는 다이렉트 가이드를 제공합니다.
+- **런타임 네트워크**: Gemini API만 (스캔 폴백). 품목·조례·배출 요일·문의처는 **오프라인 DB**.
+- **백엔드 서버 없음**: Supabase·PostgREST·자체 API 미사용.
 
 ---
 
-## 🛠️ 기술 스택 (Technical Stack)
+## 주요 기능
 
-* **언어 및 플랫폼:** Kotlin, Android (SDK 26 이상)
-* **UI 프레임워크:** Jetpack Compose (Declarative UI Layout & Gestures)
-* **비전 & 이미지 분석:**
-  * **Google ML Kit** (`com.google.mlkit:object-detection`)
-  * **AndroidX CameraX** (`androidx.camera:camera-core`, `view`, `lifecycle`)
-* **서버 및 데이터베이스:**
-  * **Supabase** (PostgreSQL, 지자체 조례 보관)
-  * **SQLite** (730개 표준 재활용 데이터 로컬 캐싱)
-* **AI 엔진:** Google Gemini 3.1 Flash Lite API
-* **공공 API:** 행정안전부 주소 정보 API, E-순환거버넌스 무상수거 데이터
+| 기능 | 설명 |
+|------|------|
+| 실시간 스캔 | ML Kit 객체 감지, 터치·드래그로 분석 대상 지정 |
+| 지역 맞춤 | GPS → Geocoder → 해당 시·군·구 조례·MOIS 배출 요일 |
+| 하이브리드 매칭 | 로컬 품목 DB 우선, 미매칭 시 Gemini |
+| 폐가전 | E-순환거버넌스 안내·`1599-0903` 통화 |
+| 접근성 | 핀치 줌, Clarification(품목 정정) |
 
 ---
 
-## 📖 사용 설명서 (User Guide)
+## 기술 스택
 
-### 1. 카메라 스캔 및 분리수거 자동 감지
-1. 앱을 실행하면 즉시 실시간 카메라 화면이 실행됩니다.
-2. 분석하고 싶은 쓰레기를 카메라 중앙에 위치시킵니다.
-3. 실시간으로 생성되는 **초록색 네온 상자**를 누르면 자동으로 1차(로컬 DB) 및 2차(Gemini AI) 분석을 거쳐 하단에 결과 카드가 나타납니다.
-
-### 2. 원하는 영역 직접 드래그 분석
-1. 카메라 화면에서 AI가 자동으로 감지하지 못하는 사물이나 작은 부위가 있다면 해당 부위 위로 손가락을 대고 **직접 영역을 드래그**합니다.
-2. 생성되는 **주황색 네온 상자** 안의 `이 영역 선택` 메뉴를 터치하면 사용자가 지정한 세부 영역에 대한 정밀 분석이 수행됩니다.
-3. 취소하고 싶다면 빈 공간을 가볍게 탭(Tap)하거나 `취소` 버튼을 터치합니다.
-
-### 3. 결과 화면 크게 보기 (핀치 줌 및 화면 이동)
-1. 하단에 표시되는 결과 안내 카드의 글씨가 너무 작다면, 카드 위에 두 손가락을 얹고 오므리거나 펼쳐서 **원하는 크기로 확대(최대 3배)**합니다.
-2. 화면을 확대한 상태에서 잘린 텍스트를 보고 싶을 때, 손가락을 대고 **상/하/좌/우**로 드래그하면 자유롭고 부드럽게 화면을 움직여 볼 수 있습니다.
-3. 두 손가락을 모아 다시 축소하면 자동으로 원본 크기로 돌아옵니다.
+| 영역 | 기술 |
+|------|------|
+| 앱 | Kotlin, Jetpack Compose, CameraX, ML Kit |
+| 온디바이스 DB | SQLite (`WasteGuideDb`, `assets/wasteguide.sqlite3`) |
+| 비전 폴백 | `GeminiClient` (`GEMINI_API_KEY`) |
+| 데이터 파이프라인 | Python 3 (`scripts/`, `data/`) |
 
 ---
 
-## ⚙️ 빌드 및 설정 방법 (Build & Configuration)
+## 빠른 시작
 
-### 1. 환경 변수 설정
-앱의 정상적인 작동을 위해 프로젝트 루트 경로의 `local.properties`에 아래의 API 키 및 엔드포인트 설정을 추가해야 합니다. (자세한 사양은 `.env` 혹은 `local.properties` 참조)
+### 1. `local.properties` (앱)
 
 ```properties
-# local.properties 예시
-SUPABASE_URL="https://your-supabase-project.supabase.co"
-SUPABASE_SERVICE_KEY="your-supabase-service-key"
-GEMINI_API_KEY="your-google-gemini-api-key"
-ADMIN_REGION_API_KEY="your-gov-region-api-key"
+GEMINI_API_KEY=your-gemini-key
 ```
 
-### 2. 빌드 실행
-안드로이드 스튜디오에서 프로젝트를 연 다음, Gradle Sync를 실행하고 장치(실기기 또는 카메라 지원 에뮬레이터)를 연결해 `app` 모듈을 실행합니다.
+스캔·Gemini 폴백에 **필수**입니다.
+
+### 2. 품목·조례 DB
 
 ```bash
-# 디버그 APK 빌드 명령어
+pip install -r requirements.txt
+python scripts/complete_wasteguide_db.py --skip-crawl
+```
+
+### 3. 지역 배출 일정·문의처 (assets 반영)
+
+```properties
+# local.properties — 파이프라인용
+WASTE_OPEN_API_KEY=your-data-go-kr-key
+```
+
+```bash
+python scripts/build_region_mois_map.py
+python scripts/import_region_extras.py
+```
+
+산출물: `app/src/main/assets/wasteguide.sqlite3`
+
+### 4. Android 빌드
+
+```bash
 ./gradlew assembleDebug
 ```
+
+---
+
+## 문서
+
+| 문서 | 내용 |
+|------|------|
+| [`PRD.md`](PRD.md) | 제품 요구사항 |
+| [`trd.md`](trd.md) | 기술 요구사항 |
+| [`docs/architecture.md`](docs/architecture.md) | 레이어·데이터 플로우 |
+| [`problem.md`](problem.md) | 문제 정의·페르소나 |
+| [`docs/public_data_integration_guide.md`](docs/public_data_integration_guide.md) | MOIS API·지역 코드 매핑 |
+| [`CLAUDE.md`](CLAUDE.md) | 저장소 작업 가이드 |
+
+---
+
+## 데이터 출처
+
+- 품목·조례: [생활폐기물 분리배출 누리집](https://wasteguide.or.kr)
+- 배출 요일·시간: 행정안전부 생활쓰기물 배출정보 Open API (빌드 시 SQLite 적재)
+- 폐가전: E-순환거버넌스
+
+---
+
+## 버전
+
+**v1.6 (2026-05)** — 오프라인 MOIS 일정, Gemini-only 클라우드, ML Kit + Compose Production Ready

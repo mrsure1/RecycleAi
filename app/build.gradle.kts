@@ -12,19 +12,6 @@ val geminiKey: String = run {
     if (f.exists()) p.load(f.inputStream())
     p.getProperty("GEMINI_API_KEY", "")
 }
-val supabaseUrl: String = run {
-    val p = Properties()
-    val f = rootProject.file("local.properties")
-    if (f.exists()) p.load(f.inputStream())
-    p.getProperty("SUPABASE_URL", "").trim('"')
-}
-val supabaseAnonKey: String = run {
-    val p = Properties()
-    val f = rootProject.file("local.properties")
-    if (f.exists()) p.load(f.inputStream())
-    p.getProperty("SUPABASE_ANON_KEY", p.getProperty("SUPABASE_SERVICE_KEY", "")).trim('"')
-}
-
 android {
     namespace = "app.trashai"
     compileSdk = 34
@@ -37,8 +24,6 @@ android {
         versionName = "0.1.0"
 
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
-        buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
     }
 
     buildFeatures {

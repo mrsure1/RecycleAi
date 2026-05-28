@@ -1,0 +1,6 @@
+{
+  "_comment": "Manual 5-digit region_code → 7-digit MOIS sigungu_cd overrides when heuristic pad is wrong.",
+  "entries": {
+    "11680": "11680000"
+  }
+}

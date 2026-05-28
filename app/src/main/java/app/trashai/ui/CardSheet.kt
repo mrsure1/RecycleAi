@@ -1,8 +1,11 @@
 package app.trashai.ui
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,13 +27,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.trashai.data.CommonGuide
 import app.trashai.data.ItemRule
+import app.trashai.data.MoisDisposalRule
+import app.trashai.data.RegionContact
+import app.trashai.data.RegionExtras
 
 @Composable
 fun ItemRuleBody(
     rule: ItemRule, 
     regionLabel: String? = null, 
     commonGuide: CommonGuide? = null,
-    regionOrdinance: app.trashai.data.RegionOrdinance? = null
+    regionOrdinance: app.trashai.data.RegionOrdinance? = null,
+    regionExtras: RegionExtras = RegionExtras(),
 ) {
     // ---- Title row -----------------------------------------------------------
     Row(
@@ -114,46 +121,13 @@ fun ItemRuleBody(
         }
     }
 
-    // ---- Region Time and Location (Sleek Navy Banner) ----------------------------------------------
     if (isRegionalOverride) {
         Spacer(Modifier.height(Tokens.Sp12))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(Tokens.Radius12))
-                .background(Tokens.SurfaceMuted)
-                .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
-                .padding(Tokens.Sp16)
-        ) {
-            val ordSummary = regionOrdinance?.appSummary
-            val timeText = if (ordSummary != null && ordSummary.contains("일몰")) {
-                "⏰ 배출 시간: 일몰 후부터 일출 전까지 배출"
-            } else {
-                "⏰ 배출 시간: 해당 지자체 안내 시간 참조"
-            }
-            val placeText = if (ordSummary != null && ordSummary.contains("지정된 장소")) {
-                "🗑️ 배출 장소: 내 집 앞 또는 지정된 거점 수거 장소"
-            } else {
-                "🗑️ 배출 장소: 정해진 배출 수거함 또는 문 앞"
-            }
-            
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = timeText,
-                    color = Tokens.TextSecondary,
-                    fontSize = 13.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = placeText,
-                    color = Tokens.TextSecondary,
-                    fontSize = 13.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
+        RegionOfficialInfoSection(
+            regionLabel = regionLabel,
+            regionOrdinance = regionOrdinance,
+            regionExtras = regionExtras,
+        )
     }
 
     // ---- E-순환거버넌스 무상 수거 안내 (DB 기반 CommonGuide 출력) ----------------------------------------
@@ -205,6 +179,128 @@ fun ItemRuleBody(
             color = Tokens.TextSecondary,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@Composable
+fun RegionOfficialInfoSection(
+    regionLabel: String?,
+    regionOrdinance: app.trashai.data.RegionOrdinance?,
+    regionExtras: RegionExtras,
+) {
+    val context = LocalContext.current
+    val moisLines = regionExtras.moisSchedules.filter { it.hasSchedule }
+    val contact = regionExtras.contact
+    val ordSummary = regionOrdinance?.appSummary
+
+    val hasMois = moisLines.isNotEmpty()
+    val hasContact = contact != null
+    val hasOrdinanceHint = ordSummary != null &&
+        (ordSummary.contains("일몰") || ordSummary.contains("지정된 장소"))
+
+    if (!hasMois && !hasContact && !hasOrdinanceHint) return
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Tokens.Radius12))
+            .background(Tokens.SurfaceMuted)
+            .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
+            .padding(Tokens.Sp16),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Tokens.Sp12)) {
+            SectionHeader(
+                icon = Icons.Outlined.Schedule,
+                text = "${regionLabel ?: "현재 지역"} 공식 배출 안내",
+            )
+
+            if (hasMois) {
+                Text(
+                    "출처: 행정안전부 생활쓰레기 배출정보",
+                    fontSize = 11.sp,
+                    color = Tokens.TextSecondary.copy(alpha = 0.85f),
+                )
+                moisLines.forEach { line -> MoisScheduleLine(line) }
+            }
+
+            if (!hasMois && hasOrdinanceHint) {
+                if (ordSummary!!.contains("일몰")) {
+                    RegionHintLine(Icons.Outlined.Schedule, "배출 시간: 일몰 후부터 일출 전까지 배출")
+                }
+                if (ordSummary.contains("지정된 장소")) {
+                    RegionHintLine(Icons.Outlined.Place, "배출 장소: 지정된 장소 또는 거점 수거")
+                }
+            }
+
+            if (hasContact) {
+                val c = contact!!
+                Spacer(Modifier.height(Tokens.Sp4))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(Tokens.Radius12))
+                        .background(Tokens.PrimarySoft)
+                        .clickable(enabled = !c.telUri.isNullOrBlank()) {
+                            c.telUri?.let { uri ->
+                                context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse(uri)))
+                            }
+                        }
+                        .padding(horizontal = Tokens.Sp16, vertical = Tokens.Sp12),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Outlined.Phone, null, tint = Tokens.Primary, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(Tokens.Sp12))
+                    Column(Modifier.weight(1f)) {
+                        Text(c.deptName, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Tokens.TextPrimary)
+                        Text(c.phone, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Tokens.Primary)
+                        c.sourceName?.let {
+                            Text(it, fontSize = 11.sp, color = Tokens.TextSecondary)
+                        }
+                    }
+                    if (!c.telUri.isNullOrBlank()) {
+                        Text("전화", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Tokens.Primary)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoisScheduleLine(rule: MoisDisposalRule) {
+    Column(Modifier.padding(vertical = 4.dp)) {
+        Text(
+            rule.category,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Tokens.Primary,
+        )
+        rule.disposalTime?.let {
+            Text(
+                "⏰ $it",
+                fontSize = 13.sp,
+                color = Tokens.TextPrimary,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+        rule.disposalMethod?.takeIf { it.isNotBlank() }?.let {
+            Text(
+                it.take(120) + if (it.length > 120) "…" else "",
+                fontSize = 12.sp,
+                color = Tokens.TextSecondary,
+                lineHeight = 18.sp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RegionHintLine(icon: ImageVector, text: String) {
+    Row(verticalAlignment = Alignment.Top) {
+        Icon(icon, null, tint = Tokens.TextSecondary, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(Tokens.Sp8))
+        Text(text, color = Tokens.TextSecondary, fontSize = 13.sp, lineHeight = 20.sp)
     }
 }
 
@@ -289,13 +385,15 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
         
         Column(modifier = Modifier.weight(1f)) {
             if (lines.size <= 1) {
-                Text(
+                TextWithDialablePhones(
                     text = lines.firstOrNull() ?: "",
-                    color = Tokens.TextPrimary,
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
-                    textAlign = TextAlign.Start,
-                    fontWeight = FontWeight.Bold
+                    style = androidx.compose.ui.text.TextStyle(
+                        color = Tokens.TextPrimary,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        textAlign = TextAlign.Start,
+                        fontWeight = FontWeight.Bold,
+                    ),
                 )
             } else {
                 Column(
@@ -313,14 +411,16 @@ private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier)
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.width(12.dp)
                             )
-                            Text(
+                            TextWithDialablePhones(
                                 text = line,
-                                color = Tokens.TextPrimary,
-                                fontSize = 13.sp,
-                                lineHeight = 17.sp,
-                                textAlign = TextAlign.Start,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                style = androidx.compose.ui.text.TextStyle(
+                                    color = Tokens.TextPrimary,
+                                    fontSize = 13.sp,
+                                    lineHeight = 17.sp,
+                                    textAlign = TextAlign.Start,
+                                    fontWeight = FontWeight.Bold,
+                                ),
                             )
                         }
                     }
@@ -366,11 +466,13 @@ private fun InfoBlock(
                 .filter { it.isNotEmpty() }
 
             if (lines.size <= 1) {
-                Text(
+                TextWithDialablePhones(
                     text = lines.firstOrNull() ?: "",
-                    fontSize = Tokens.CaptionSize,
-                    color = Tokens.TextPrimary,
-                    lineHeight = 16.sp
+                    style = androidx.compose.ui.text.TextStyle(
+                        fontSize = Tokens.CaptionSize,
+                        color = Tokens.TextPrimary,
+                        lineHeight = 16.sp,
+                    ),
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -382,12 +484,14 @@ private fun InfoBlock(
                                 color = iconTint.copy(alpha = 0.5f),
                                 modifier = Modifier.padding(end = 6.dp)
                             )
-                            Text(
+                            TextWithDialablePhones(
                                 text = line,
-                                fontSize = Tokens.CaptionSize,
-                                color = Tokens.TextPrimary,
-                                lineHeight = 16.sp,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                style = androidx.compose.ui.text.TextStyle(
+                                    fontSize = Tokens.CaptionSize,
+                                    color = Tokens.TextPrimary,
+                                    lineHeight = 16.sp,
+                                ),
                             )
                         }
                     }
@@ -423,11 +527,13 @@ fun CommonGuideSection(guide: CommonGuide) {
             )
         }
         Spacer(Modifier.height(Tokens.Sp8))
-        Text(
-            guide.description,
-            fontSize = 13.sp,
-            color = Tokens.TextSecondary,
-            lineHeight = 20.sp
+        TextWithDialablePhones(
+            text = guide.description,
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = 13.sp,
+                color = Tokens.TextSecondary,
+                lineHeight = 20.sp,
+            ),
         )
         Spacer(Modifier.height(Tokens.Sp16))
         
@@ -486,23 +592,22 @@ fun CommonGuideSection(guide: CommonGuide) {
             Spacer(Modifier.height(Tokens.Sp16))
         }
 
-        if (guide.ctaLabel != null && guide.ctaAction != null) {
-            val context = LocalContext.current
+        val context = LocalContext.current
+        val dialUri = guide.ctaAction?.takeIf { it.isNotBlank() }
+            ?: if (guide.guideId == "ecycle") ECYCLE_DIAL_URI else null
+        val dialLabel = guide.ctaLabel?.takeIf { it.isNotBlank() }
+            ?: if (dialUri != null) "$ECYCLE_DISPLAY_NUMBER 전화 접수 (E-순환거버넌스)" else null
+        if (dialUri != null && dialLabel != null) {
             Button(
-                onClick = {
-                    val intent = android.content.Intent(android.content.Intent.ACTION_DIAL).apply {
-                        data = android.net.Uri.parse(guide.ctaAction)
-                    }
-                    context.startActivity(intent)
-                },
+                onClick = { dialPhoneNumber(context, dialUri) },
                 colors = ButtonDefaults.buttonColors(containerColor = Tokens.Primary),
                 shape = RoundedCornerShape(Tokens.Radius12),
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(vertical = 14.dp)
+                contentPadding = PaddingValues(vertical = 14.dp),
             ) {
-                Icon(Icons.Outlined.Phone, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Icon(Icons.Outlined.Phone, contentDescription = "전화 걸기", tint = Color.White, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(Tokens.Sp8))
-                Text(guide.ctaLabel, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(dialLabel, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
     }

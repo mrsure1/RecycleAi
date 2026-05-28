@@ -65,6 +65,11 @@ def main() -> None:
         )
 
     run_step("finalize-app-db", [str(ROOT / "scripts" / "finalize_app_db.py")])
+    print(
+        "Optional: python scripts/build_region_mois_map.py && "
+        "python scripts/import_region_extras.py",
+        flush=True,
+    )
     print("All DB build steps completed.", flush=True)
 
 

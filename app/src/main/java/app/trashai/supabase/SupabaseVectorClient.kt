@@ -1,44 +1,25 @@
 package app.trashai.supabase
 
 import android.util.Log
-import app.trashai.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.util.concurrent.TimeUnit
 import app.trashai.gemini.GeminiClient
 import app.trashai.gemini.GeminiResult
 
 /**
- * Supabase Edge Functions의 벡터 검색 엔드포인트(search-trash-vector)와 통신하여
- * 이미지 임베딩 코사인 유사도 기반의 의미론적 분리수거 항목 검색 결과를 가져옵니다.
+ * Legacy class name: on-device ML Kit label heuristics or direct Gemini keyword extraction.
+ * Runtime does not call Supabase PostgREST or Edge Functions.
  */
 object TrashAiConfig {
-    /**
-     * true: 100% 온디바이스 오프라인 비전 및 로컬 DB 검색 모드 실행 (비용 0원)
-     * false: 기존 Supabase Edge Function + Gemini 3.1 Flash Lite 클라우드 API 모드 실행
-     */
+    /** true: ML Kit label → local keyword heuristics only (no Gemini). */
     const val USE_LOCAL_VECTOR_SEARCH = false
 }
 
-class SupabaseVectorClient(
-    private val supabaseUrl: String = BuildConfig.SUPABASE_URL,
-    private val anonKey: String = BuildConfig.SUPABASE_ANON_KEY
-) {
-    private val http = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(45, TimeUnit.SECONDS)
-        .build()
-
-    private val json = Json { ignoreUnknownKeys = true }
+class SupabaseVectorClient {
     private val gemini = GeminiClient()
 
-    val isConfigured: Boolean get() = supabaseUrl.isNotBlank() && anonKey.isNotBlank() && gemini.isConfigured
+    val isConfigured: Boolean get() = gemini.isConfigured
 
     @Serializable
     data class VectorResult(
@@ -47,22 +28,16 @@ class SupabaseVectorClient(
         val category: String? = null,
         val disposal_method: String? = null,
         val disposal_time: String? = null,
-        val similarity: Double
-    )
-
-    @Serializable
-    data class VectorResponse(
-        val results: List<VectorResult> = emptyList()
+        val similarity: Double,
     )
 
     /**
-     * 클라이언트 내부에서 직접 Gemini API를 호출하여 이미지 속 사물을 고정밀 판독하고
-     * 한글 단어 후보군을 그대로 반환합니다.
+     * Returns Korean item-name keywords for local SQLite grounding.
      */
     suspend fun searchTrashVector(
         jpegBytes: ByteArray,
         sigunguCode: String,
-        rawLabel: String? = null
+        rawLabel: String? = null,
     ): SupabaseResult<List<VectorResult>> = withContext(Dispatchers.IO) {
         if (TrashAiConfig.USE_LOCAL_VECTOR_SEARCH) {
             return@withContext localSearchVector(rawLabel)
@@ -77,7 +52,6 @@ class SupabaseVectorClient(
                 if (keywords.isEmpty()) {
                     SupabaseResult.Ok(emptyList())
                 } else {
-                    // 가장 첫 번째 판독 단어가 실시간 화면의 바운딩 박스 라벨이 됩니다.
                     val results = keywords.mapIndexed { idx, item ->
                         VectorResult(
                             id = idx.toLong() + 1,
@@ -85,7 +59,7 @@ class SupabaseVectorClient(
                             category = "재활용",
                             disposal_method = "",
                             disposal_time = "",
-                            similarity = if (idx == 0) 1.0 else 0.8
+                            similarity = if (idx == 0) 1.0 else 0.8,
                         )
                     }
                     SupabaseResult.Ok(results)
@@ -111,11 +85,8 @@ class SupabaseVectorClient(
             labelLower.contains("appliance") -> "가전제품"
             labelLower.contains("clothing") || labelLower.contains("fashion") -> "의류"
             labelLower.contains("plastic") -> "플라스틱"
-            
-            // ML Kit 5대 카테고리 매핑
             labelLower.contains("home goods") || labelLower.contains("home") -> "플라스틱"
             labelLower.contains("plants") || labelLower.contains("plant") -> "나무"
-            
             else -> "일반쓰레기"
         }
 
@@ -126,10 +97,10 @@ class SupabaseVectorClient(
                 category = "온디바이스",
                 disposal_method = "로컬 매칭 완료",
                 disposal_time = "",
-                similarity = 1.0
-            )
+                similarity = 1.0,
+            ),
         )
-        Log.d(TAG, "USE_LOCAL_VECTOR_SEARCH - ML Kit 레이블: '$rawLabel' -> 매칭 키워드: '$matchedKorean'")
+        Log.d(TAG, "USE_LOCAL_VECTOR_SEARCH - ML Kit: '$rawLabel' -> '$matchedKorean'")
         return SupabaseResult.Ok(results)
     }
 

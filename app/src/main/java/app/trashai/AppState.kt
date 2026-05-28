@@ -8,6 +8,8 @@ import app.trashai.data.WasteGuideDb
 import app.trashai.data.commonGuideById
 import app.trashai.data.itemById
 import app.trashai.data.ordinanceByRegion
+import app.trashai.data.RegionExtras
+import app.trashai.data.RegionExtrasLoader
 import app.trashai.data.searchByKeywords
 import app.trashai.gemini.GeminiClient
 import app.trashai.gemini.GeminiResult
@@ -33,6 +35,8 @@ data class AppUiState(
      *  whenever a result sheet is open, replacing the live preview. */
     val lastCapturedJpeg: ByteArray? = null,
     val regionOrdinance: app.trashai.data.RegionOrdinance? = null,
+    /** 행안부 배출 일정 + 지자체 문의처 (있는 데이터만). */
+    val regionExtras: RegionExtras = RegionExtras(),
 )
 
 sealed interface SheetState {
@@ -75,8 +79,12 @@ class AppState(private val appContext: Context) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val gemini = GeminiClient()
     private val supabaseVector = SupabaseVectorClient()
-
     private val ambiguityGap = 0.15f
+
+    private suspend fun refreshRegionExtras(regionCode: String?) {
+        val extras = RegionExtrasLoader.load(appContext, regionCode)
+        _state.update { it.copy(regionExtras = extras) }
+    }
 
     fun preloadDb() {
         scope.launch {
@@ -84,6 +92,7 @@ class AppState(private val appContext: Context) {
                 val db = WasteGuideDb.open(appContext)
                 val ord = db.ordinanceByRegion("경기도", "고양시 일산동구")
                 _state.update { it.copy(regionOrdinance = ord) }
+                refreshRegionExtras(ord?.regionCode)
             }.onFailure { e ->
                 _state.update { it.copy(sheetState = SheetState.Error(e.message ?: "DB open failed")) }
             }
@@ -120,7 +129,7 @@ class AppState(private val appContext: Context) {
                     lastCapturedJpeg = jpegBytes,
                 )
             }
-            val sigunguCode = _state.value.regionOrdinance?.regionId ?: "1100000000"
+            val sigunguCode = _state.value.regionOrdinance?.regionCode ?: "1100000000"
             when (val r = supabaseVector.searchTrashVector(jpegBytes, sigunguCode, rawLabel)) {
                 is SupabaseResult.Ok -> {
                     if (r.value.isEmpty()) {
@@ -136,7 +145,7 @@ class AppState(private val appContext: Context) {
         }
 
         if (!supabaseVector.isConfigured) {
-            _state.update { it.copy(sheetState = SheetState.Error("local.properties의 SUPABASE_URL 및 SUPABASE_ANON_KEY를 입력해주세요. (Clean+Rebuild 필요)")) }
+            _state.update { it.copy(sheetState = SheetState.Error("local.properties의 GEMINI_API_KEY를 입력해주세요. (Clean+Rebuild 필요)")) }
             return
         }
         _state.update {
@@ -146,7 +155,7 @@ class AppState(private val appContext: Context) {
             )
         }
         
-        val sigunguCode = _state.value.regionOrdinance?.regionId ?: "1100000000"
+        val sigunguCode = _state.value.regionOrdinance?.regionCode ?: "1100000000"
         
         when (val r = supabaseVector.searchTrashVector(jpegBytes, sigunguCode, rawLabel)) {
             is SupabaseResult.Ok -> {
@@ -159,10 +168,10 @@ class AppState(private val appContext: Context) {
                 }
             }
             is SupabaseResult.HttpError -> _state.update {
-                it.copy(sheetState = SheetState.Error("Supabase HTTP ${r.code}\n${r.body}"))
+                it.copy(sheetState = SheetState.Error("Gemini API 오류 (${r.code})\n${r.body}"))
             }
             is SupabaseResult.ParseError -> _state.update {
-                it.copy(sheetState = SheetState.Error("Supabase 응답 파싱 실패:\n${r.rawSnippet}"))
+                it.copy(sheetState = SheetState.Error("Gemini 응답 파싱 실패:\n${r.rawSnippet}"))
             }
             is SupabaseResult.NetworkError -> _state.update {
                 it.copy(sheetState = SheetState.Error("네트워크 오류: ${r.detail}"))
@@ -171,7 +180,7 @@ class AppState(private val appContext: Context) {
                 it.copy(sheetState = SheetState.Error("입력 오류: ${r.detail}"))
             }
             SupabaseResult.NotConfigured -> _state.update {
-                it.copy(sheetState = SheetState.Error("Supabase 접속 정보가 설정되지 않았습니다."))
+                it.copy(sheetState = SheetState.Error("GEMINI_API_KEY가 설정되지 않았습니다."))
             }
         }
     }
@@ -216,6 +225,7 @@ class AppState(private val appContext: Context) {
                         }.getOrNull()
                     }
                     _state.update { it.copy(regionLabel = r.display, regionLoading = false, regionOrdinance = ord) }
+                    refreshRegionExtras(ord?.regionCode)
                 }
                 LocationHelper.Result.PermissionDenied -> _state.update { s -> s.copy(
                     regionLoading = false,

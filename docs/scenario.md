@@ -53,10 +53,10 @@
 * **위치 매핑**: 행정안전부 API를 통한 실시간 GPS 행정동 변환 및 상단 바 렌더링.
 * **하이브리드 비전 스택**: AndroidX CameraX 프리뷰 제어 + Google ML Kit 실시간 포착 + 커스텀 드래그 영역 지정 및 정밀 크롭.
 * **바텀시트 UX**: `Modifier.layout`을 적용한 핀치 줌 스크롤 계층 구조 및 직관적 픽토그램 렌더링.
-* **클라우드 연동**: Supabase 지자체 룰셋 및 E-순환거버넌스 무상 수거 API 모듈화 렌더링.
+* **데이터 연동**: SQLite 지자체 조례·MOIS 일정·E-순환거버넌스 가이드(`app_common_guide`).
 
 ### 5.2 데이터 전제
-* 자체 730개 핵심 품목 DB 및 Supabase 전국 지자체 룰셋(`ItemRule`).
+* 온디바이스 `app_item_rule` 및 `app_region_ordinance` (wasteguide 정제본).
 * E-순환거버넌스 무상 방문 수거 기준표 메타데이터.
 
 ### 5.3 사용자 행동 전제
