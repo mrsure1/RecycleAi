@@ -319,7 +319,7 @@ private fun TrashAiApp() {
                             )
                             .padding(Tokens.Sp24)
                     ) {
-                        BottomCardContent(
+                         BottomCardContent(
                             state = state,
                             onPickItem = { viewModel.pickItem(it) },
                             onConfirmYes = { viewModel.confirmYes() },
@@ -329,7 +329,8 @@ private fun TrashAiApp() {
                             onDismiss = { viewModel.dismissSheet() },
                             onShowInfo = { viewModel.showInfo(it) },
                             onTabChange = { scope.launch { scrollState.scrollTo(0) } },
-                            onRefill = { jpeg, label -> viewModel.refillAndRetry(jpeg, label) }
+                            onRefill = { jpeg, label -> viewModel.refillAndRetry(jpeg, label) },
+                            scrollValue = scrollState.value
                         )
                     }
                 }
@@ -460,6 +461,7 @@ private fun BottomCardContent(
     onShowInfo: (String) -> Unit,
     onTabChange: () -> Unit = {},
     onRefill: (ByteArray, String?) -> Unit,
+    scrollValue: Int = 0,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         when (val s = state.sheetState) {
@@ -483,6 +485,7 @@ private fun BottomCardContent(
                     commonGuide = s.commonGuide,
                     regionOrdinance = state.regionOrdinance,
                     regionExtras = state.regionExtras,
+                    scrollValue = scrollValue,
                 )
                 if (s.alternates.isNotEmpty()) {
                     Spacer(Modifier.height(Tokens.Sp16))

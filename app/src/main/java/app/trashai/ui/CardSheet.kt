@@ -38,6 +38,7 @@ fun ItemRuleBody(
     commonGuide: CommonGuide? = null,
     regionOrdinance: app.trashai.data.RegionOrdinance? = null,
     regionExtras: RegionExtras = RegionExtras(),
+    scrollValue: Int = 0,
 ) {
     // ---- Title row -----------------------------------------------------------
     Row(
@@ -96,27 +97,21 @@ fun ItemRuleBody(
         .filter { it.length >= 2 }
         .distinctBy { it.replace(Regex("[\\s.,ㆍ·#?!~@@]"), "") }
         .take(5)
+
+    // 스크롤 진행량(0 ~ 300px)에 따른 동적 크기 보간 인자 계산
+    val fraction = (1f - (scrollValue.toFloat() / 300f)).coerceIn(0f, 1f)
+    val cardGap = (6 + (6 * fraction)).dp
         
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Tokens.Sp6)
+        verticalArrangement = Arrangement.spacedBy(cardGap)
     ) {
         steps.forEachIndexed { i, step ->
-            StepColumn(
+            StepCard(
                 number = i + 1, 
                 body = step, 
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(
-                        elevation = 2.dp,
-                        shape = RoundedCornerShape(Tokens.Radius12),
-                        spotColor = Color(0x1A000000),
-                        ambientColor = Color(0x0A000000)
-                    )
-                    .background(Tokens.Surface, RoundedCornerShape(Tokens.Radius12))
-                    .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius12))
-                    .padding(horizontal = Tokens.Sp16, vertical = Tokens.Sp12)
+                fraction = fraction
             )
         }
     }
@@ -389,77 +384,115 @@ private fun SectionHeader(
     }
 }
 
+private fun getStepIcon(text: String): ImageVector {
+    val clean = text.replace(" ", "")
+    return when {
+        clean.contains("헹구") || clean.contains("씻으") || clean.contains("세척") || clean.contains("물로") || clean.contains("비우") -> {
+            Icons.Outlined.WaterDrop
+        }
+        clean.contains("떼") || clean.contains("제거") || clean.contains("분리") || clean.contains("뜯") || clean.contains("컷") || clean.contains("벗기") || clean.contains("비닐") -> {
+            Icons.Outlined.ContentCut
+        }
+        clean.contains("접") || clean.contains("압착") || clean.contains("찌그러") || clean.contains("부수") || clean.contains("붑") || clean.contains("납작") || clean.contains("밟") -> {
+            Icons.Outlined.Compress
+        }
+        clean.contains("버리") || clean.contains("배출") || clean.contains("넣으") || clean.contains("담으") || clean.contains("제출") || clean.contains("투입") || clean.contains("배송") -> {
+            Icons.Outlined.DeleteOutline
+        }
+        clean.contains("묶") || clean.contains("묶어") || clean.contains("끈") || clean.contains("포장") -> {
+            Icons.Outlined.ShoppingBag
+        }
+        else -> Icons.Outlined.CheckCircleOutline
+    }
+}
+
 @Composable
-private fun StepColumn(number: Int, body: String, modifier: Modifier = Modifier) {
+private fun StepCard(
+    number: Int,
+    body: String,
+    fraction: Float,
+    modifier: Modifier = Modifier
+) {
     val bulletRegex = Regex("^[•\\-*·\\d.]+\\s*")
-    val lines = body.split('\n')
-        .map { it.trim().replaceFirst(bulletRegex, "") }
-        .filter { it.isNotEmpty() }
+    val cleanBody = body.trim().replaceFirst(bulletRegex, "")
+    val icon = getStepIcon(cleanBody)
+
+    val fontSize = (13 + (7 * fraction)).sp
+    val iconSize = (16 + (28 * fraction)).dp
+    val verticalPadding = (10 + (10 * fraction)).dp
+    val horizontalPadding = (12 + (8 * fraction)).dp
+    val badgeSize = (20 + (6 * fraction)).dp
+    val badgeTextSize = (10 + (2 * fraction)).sp
 
     Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.Top
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = (2 + (4 * fraction)).dp,
+                shape = RoundedCornerShape(Tokens.Radius12),
+                spotColor = Color(0x1A000000)
+            )
+            .background(
+                if (number == 1 && fraction > 0.3f) Tokens.PrimarySoft.copy(alpha = 0.5f)
+                else Tokens.Surface,
+                RoundedCornerShape(Tokens.Radius12)
+            )
+            .border(
+                width = (1 + (0.5f * fraction)).dp,
+                color = if (number == 1 && fraction > 0.3f) Tokens.Primary else Tokens.Divider,
+                shape = RoundedCornerShape(Tokens.Radius12)
+            )
+            .padding(horizontal = horizontalPadding, vertical = verticalPadding),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(22.dp)
+                .size(iconSize)
+                .clip(CircleShape)
+                .background(
+                    if (number == 1) Tokens.PrimarySoft
+                    else Tokens.SurfaceMuted
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (number == 1) Tokens.Primary else Tokens.TextSecondary,
+                modifier = Modifier.size(iconSize * 0.6f)
+            )
+        }
+        
+        Spacer(Modifier.width(Tokens.Sp12))
+
+        Box(
+            modifier = Modifier
+                .size(badgeSize)
                 .clip(CircleShape)
                 .background(Tokens.PrimarySoft),
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                "$number",
+                "$number단계",
                 color = Tokens.Primary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
+                fontSize = badgeTextSize,
             )
         }
-        Spacer(Modifier.width(Tokens.Sp8))
-        
-        Column(modifier = Modifier.weight(1f)) {
-            if (lines.size <= 1) {
-                TextWithDialablePhones(
-                    text = lines.firstOrNull() ?: "",
-                    style = androidx.compose.ui.text.TextStyle(
-                        color = Tokens.TextPrimary,
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp,
-                        textAlign = TextAlign.Start,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                )
-            } else {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(Tokens.Sp4)
-                ) {
-                    lines.forEach { line ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            Text(
-                                text = "•",
-                                color = Tokens.Primary,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.width(12.dp)
-                            )
-                            TextWithDialablePhones(
-                                text = line,
-                                modifier = Modifier.weight(1f),
-                                style = androidx.compose.ui.text.TextStyle(
-                                    color = Tokens.TextPrimary,
-                                    fontSize = 13.sp,
-                                    lineHeight = 17.sp,
-                                    textAlign = TextAlign.Start,
-                                    fontWeight = FontWeight.Bold,
-                                ),
-                            )
-                        }
-                    }
-                }
-            }
-        }
+
+        Spacer(Modifier.width(Tokens.Sp12))
+
+        TextWithDialablePhones(
+            text = cleanBody,
+            modifier = Modifier.weight(1f),
+            style = androidx.compose.ui.text.TextStyle(
+                color = Tokens.TextPrimary,
+                fontSize = fontSize,
+                lineHeight = fontSize * 1.4f,
+                fontWeight = if (fraction > 0.5f) FontWeight.ExtraBold else FontWeight.Bold,
+                textAlign = TextAlign.Start,
+            ),
+        )
     }
 }
 
