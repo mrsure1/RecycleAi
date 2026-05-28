@@ -64,6 +64,27 @@ sealed interface SheetState {
         val commonGuide: CommonGuide? = null,
     ) : SheetState
 
+    /** 일일 AI 스캔 한도에 도달하여 광고 시청 및 보상 충전을 요청하는 상태입니다. */
+    data class AdLimitReached(
+        val jpegBytes: ByteArray,
+        val rawLabel: String?
+    ) : SheetState {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            other as AdLimitReached
+            if (!jpegBytes.contentEquals(other.jpegBytes)) return false
+            if (rawLabel != other.rawLabel) return false
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = jpegBytes.contentHashCode()
+            result = 31 * result + (rawLabel?.hashCode() ?: 0)
+            return result
+        }
+    }
+
     /** Legal info & App info sheet. */
     data class Info(val initialTab: String = "개인정보 처리방침") : SheetState
 
@@ -105,6 +126,17 @@ class AppState(private val appContext: Context) {
      * against the local DB.
      */
     suspend fun onCapture(jpegBytes: ByteArray, rawLabel: String? = null) {
+        // 일일 AI 스캔 한도 도달 여부 체크 (비로그인 로컬 카운트 기반)
+        if (!app.trashai.data.ScanLimitManager.canScanToday(appContext)) {
+            _state.update {
+                it.copy(
+                    sheetState = SheetState.AdLimitReached(jpegBytes, rawLabel),
+                    lastCapturedJpeg = jpegBytes
+                )
+            }
+            return
+        }
+
         // 한글 문자가 포함된 확실하게 캐싱 및 판독 완료된 진짜 품목 라벨명인지 검증
         val isConfirmedKoreanLabel = !rawLabel.isNullOrBlank() && 
                 rawLabel != "미확인" && rawLabel != "확인 불가" && rawLabel != "분석 중..." &&
@@ -346,6 +378,19 @@ class AppState(private val appContext: Context) {
         }
     }
 
+    /**
+     * 보상형 광고 시청이 완료된 후 기기 한도를 충전하고, 차단되었던 캡처 스캔을 다시 시작합니다.
+     */
+    fun refillAndRetry(jpegBytes: ByteArray, rawLabel: String?) {
+        scope.launch {
+            _state.update { it.copy(sheetState = SheetState.Loading("광고 시청 완료! 스캔 분석 중…")) }
+            withContext(Dispatchers.IO) {
+                app.trashai.data.ScanLimitManager.refillScanCount(appContext, 5)
+            }
+            onCapture(jpegBytes, rawLabel)
+        }
+    }
+
     // ---- internals -----------------------------------------------------------
 
     private suspend fun groundAndPresent(keywords: List<String>, sourceLabel: String) {
@@ -355,6 +400,14 @@ class AppState(private val appContext: Context) {
             startAskUser(reason = "DB에 정확히 일치하는 항목이 없어요.")
             return
         }
+
+        // 캐싱된 로컬 매칭이 아닌 실제 AI/벡터 검색 API를 호출한 경우에만 일일 스캔 사용량 카운트를 증가
+        if (sourceLabel != "Cached Match") {
+            withContext(Dispatchers.IO) {
+                app.trashai.data.ScanLimitManager.incrementScanCount(appContext)
+            }
+        }
+
         val top = hits.first()
         val second = hits.getOrNull(1)
         val confident = second == null || (top.weight - second.weight) > (top.weight * ambiguityGap)

@@ -452,6 +452,15 @@ private fun BottomCardContent(
 
             is SheetState.Loading -> AnimatedLoadingScreen(s.message)
 
+            is SheetState.AdLimitReached -> {
+                AdLimitReachedContent(
+                    jpegBytes = s.jpegBytes,
+                    rawLabel = s.rawLabel,
+                    onRefill = { viewModel.refillAndRetry(s.jpegBytes, s.rawLabel) },
+                    onSearchManually = { viewModel.startAskUser() }
+                )
+            }
+
             is SheetState.Item -> {
                 ItemRuleBody(
                     s.rule,
@@ -1186,5 +1195,148 @@ private fun CorrectionInput(onSubmit: (String) -> Unit) {
                 }
             }
         )
+    }
+}
+
+/**
+ * 일일 스캔 횟수 제한 도달 시 보상형 광고를 제공하고 재생을 모사하는 글래스모피즘 팝업 UI 컴포저블입니다.
+ */
+@Composable
+private fun AdLimitReachedContent(
+    jpegBytes: ByteArray,
+    rawLabel: String?,
+    onRefill: () -> Unit,
+    onSearchManually: () -> Unit
+) {
+    var isWatching by remember { mutableStateOf(false) }
+    var progress by remember { mutableStateOf(0f) }
+
+    if (isWatching) {
+        // 3초간 비동기 딜레이를 주어 광고 동영상 시청 화면을 시뮬레이션
+        LaunchedEffect(Unit) {
+            val steps = 30
+            for (i in 1..steps) {
+                kotlinx.coroutines.delay(100)
+                progress = i.toFloat() / steps
+            }
+            onRefill()
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = Tokens.Sp24),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(100.dp)) {
+                CircularProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxSize(),
+                    color = Tokens.Primary,
+                    strokeWidth = 6.dp,
+                    trackColor = Tokens.Divider
+                )
+                val remainingSeconds = (3 - (progress * 3).toInt()).coerceAtLeast(1)
+                Text(
+                    text = "${remainingSeconds}초",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Tokens.TextPrimary
+                )
+            }
+            Spacer(Modifier.height(Tokens.Sp16))
+            Text(
+                text = "광고 동영상 재생 중...",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Tokens.TextPrimary
+            )
+            Spacer(Modifier.height(Tokens.Sp4))
+            Text(
+                text = "보상을 획득하기 위해 잠시만 대기해 주세요.",
+                fontSize = Tokens.CaptionSize,
+                color = Tokens.TextSecondary,
+                textAlign = TextAlign.Center
+            )
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = Tokens.Sp16)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Tokens.PrimarySoft),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = null,
+                        tint = Tokens.Primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(Modifier.width(Tokens.Sp12))
+                Column {
+                    Text("일일 AI 스캔 한도 초과", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
+                    Spacer(Modifier.height(Tokens.Sp4))
+                    Text("무료 인식 5/5 소모", fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
+                }
+            }
+            Spacer(Modifier.height(Tokens.Sp16))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(Tokens.Radius12))
+                    .background(Tokens.SurfaceMuted)
+                    .padding(Tokens.Sp16)
+            ) {
+                Text(
+                    text = "오늘 제공된 무료 AI 스캔 5회를 모두 사용하셨습니다.\n30초 이하의 짧은 보상형 동영상 광고를 시청하시면 즉시 AI 스캔 5회가 충전됩니다.",
+                    fontSize = 14.sp,
+                    color = Tokens.TextSecondary,
+                    lineHeight = 20.sp
+                )
+            }
+            Spacer(Modifier.height(Tokens.Sp24))
+
+            Button(
+                onClick = { isWatching = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Tokens.Primary),
+                shape = RoundedCornerShape(Tokens.Radius12),
+                contentPadding = PaddingValues(vertical = 12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.OndemandVideo,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(Tokens.Sp8))
+                Text("광고 시청하고 5회 충전", fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.height(Tokens.Sp8))
+            OutlinedButton(
+                onClick = onSearchManually,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(Tokens.Radius12),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Tokens.Primary),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Tokens.Primary)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(Tokens.Sp8))
+                Text("직접 텍스트로 검색하기 (무료)", fontWeight = FontWeight.SemiBold)
+            }
+        }
     }
 }
