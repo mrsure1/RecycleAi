@@ -541,68 +541,19 @@ private fun BottomCardContent(
                 Column(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Tokens.Radius12)).background(Tokens.SurfaceMuted).padding(Tokens.Sp16)
                 ) {
-                    // appSummary와 dischargeMethod 중복 방지: 공백/기호 제거 후 양방향 포함관계면 하나만 표시
-                    val summary = s.rule.appSummary
-                    val discharge = s.rule.dischargeMethod
-                    val cleanSummary = summary?.replace(Regex("[\\s.,ㆍ·#?!~@@]"), "") ?: ""
-                    val cleanDischarge = discharge?.replace(Regex("[\\s.,ㆍ·#?!~@@]"), "") ?: ""
-                    val isDuplicate = summary != null && discharge != null && (
-                        cleanSummary == cleanDischarge ||
-                        cleanSummary.contains(cleanDischarge) ||
-                        cleanDischarge.contains(cleanSummary)
+                    // '이게 맞나요?' 화면에서는 요약된 분리방법 1가지만 단순 노출
+                    val displayText = s.rule.appSummary ?: s.rule.dischargeMethod ?: "분리배출 정보가 없습니다."
+                    TextWithDialablePhones(
+                        text = displayText,
+                        style = androidx.compose.ui.text.TextStyle(
+                            color = Tokens.TextPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 20.sp,
+                        ),
                     )
-
-                    if (isDuplicate) {
-                        val longerText = if (discharge!!.length >= summary!!.length) discharge else summary
-                        TextWithDialablePhones(
-                            text = longerText,
-                            style = androidx.compose.ui.text.TextStyle(
-                                color = Tokens.TextPrimary,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                lineHeight = 20.sp,
-                            ),
-                        )
-                    } else {
-                        summary?.let {
-                            TextWithDialablePhones(
-                                text = it,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    color = Tokens.TextPrimary,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                ),
-                            )
-                        }
-                        discharge?.let {
-                            Spacer(Modifier.height(Tokens.Sp6))
-                            TextWithDialablePhones(
-                                text = it,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    color = Tokens.TextSecondary,
-                                    fontSize = Tokens.CaptionSize,
-                                    lineHeight = 16.sp,
-                                ),
-                            )
-                        }
-                    }
                 }
                 Spacer(Modifier.height(Tokens.Sp16))
-
-                // E-순환거버넌스 공통 안내 렌더링 추가
-                s.commonGuide?.let { guide ->
-                    CommonGuideSection(guide = guide)
-                    Spacer(Modifier.height(Tokens.Sp16))
-                }
-
-                if (state.regionLabel != "위치 확인 중...") {
-                    RegionOfficialInfoSection(
-                        regionLabel = state.regionLabel,
-                        regionOrdinance = state.regionOrdinance,
-                        regionExtras = state.regionExtras,
-                    )
-                    Spacer(Modifier.height(Tokens.Sp16))
-                }
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = onConfirmNo) { Text("아니에요", color = Tokens.TextSecondary, fontWeight = FontWeight.SemiBold) }
