@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "224840617345",
+    "project_id": "recycleai-mrsure-trashai",
+    "storage_bucket": "recycleai-mrsure-trashai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:224840617345:android:49a85157cb138197866c80",
+        "android_client_info": {
+          "package_name": "app.trashai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiZNLY9PG9dGQWlyHKJz2Gut8A9F1SMVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
