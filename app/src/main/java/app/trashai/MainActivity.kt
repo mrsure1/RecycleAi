@@ -547,9 +547,9 @@ private fun BottomCardContent(
                         text = displayText,
                         style = androidx.compose.ui.text.TextStyle(
                             color = Tokens.TextPrimary,
-                            fontSize = 14.sp,
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.SemiBold,
-                            lineHeight = 20.sp,
+                            lineHeight = 24.sp,
                         ),
                     )
                 }
