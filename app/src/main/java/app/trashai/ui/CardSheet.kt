@@ -415,14 +415,12 @@ private fun StepCard(
 ) {
     val bulletRegex = Regex("^[•\\-*·\\d.]+\\s*")
     val cleanBody = body.trim().replaceFirst(bulletRegex, "")
-    val icon = getStepIcon(cleanBody)
 
     val fontSize = (13 + (7 * fraction)).sp
     val iconSize = (28 + (28 * fraction)).dp
     val verticalPadding = (8 + (10 * fraction)).dp
     val horizontalPadding = (10 + (8 * fraction)).dp
-    val badgeSize = (14 + (6 * fraction)).dp
-    val badgeTextSize = (8 + (2 * fraction)).sp
+    val numFontSize = (14 + (8 * fraction)).sp
 
     Row(
         modifier = modifier
@@ -445,47 +443,28 @@ private fun StepCard(
             .padding(horizontal = horizontalPadding, vertical = verticalPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // 1. 아이콘 대신 숫자를 둥근 원에 채워 공간활용을 획기적으로 개선
         Box(
-            modifier = Modifier.size(iconSize)
+            modifier = Modifier
+                .size(iconSize)
+                .clip(CircleShape)
+                .background(
+                    if (number == 1) Tokens.Primary
+                    else Tokens.PrimarySoft
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .background(
-                        if (number == 1) Tokens.PrimarySoft
-                        else Tokens.SurfaceMuted
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = if (number == 1) Tokens.Primary else Tokens.TextSecondary,
-                    modifier = Modifier.size(iconSize * 0.55f)
-                )
-            }
-            
-            Box(
-                modifier = Modifier
-                    .size(badgeSize)
-                    .align(Alignment.BottomEnd)
-                    .clip(CircleShape)
-                    .background(Tokens.Primary)
-                    .border(1.dp, Color.White, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "$number",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = badgeTextSize,
-                )
-            }
+            Text(
+                text = "$number",
+                color = if (number == 1) Color.White else Tokens.Primary,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = numFontSize,
+            )
         }
         
         Spacer(Modifier.width(Tokens.Sp12))
 
+        // 2. 가로 폭이 시원하게 극대화된 본문 텍스트
         TextWithDialablePhones(
             text = cleanBody,
             modifier = Modifier.weight(1f),
