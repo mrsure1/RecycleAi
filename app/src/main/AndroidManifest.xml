@@ -13,6 +13,12 @@
         android:roundIcon="@drawable/recycle_ai_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.TrashAI">
+
+        <!-- AdMob App ID 등록 -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-9847865524181124~8136654667"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
