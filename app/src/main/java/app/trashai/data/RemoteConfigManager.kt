@@ -1,37 +1,58 @@
 package app.trashai.data
 
 import android.content.Context
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 
 /**
- * 차후 Firebase Remote Config 연동 시 한 줄의 변경만으로 대체 가능한 원격 설정 제어 매니저입니다.
- * 비로그인 사용자 환경을 기본으로 설계되었습니다.
+ * Firebase Remote Config를 연동하여 서버 측의 설정을 실시간으로 적용하는 원격 설정 매니저입니다.
+ * 비로그인 사용자 기기에서도 오프라인 캐싱 및 백그라운드 Fetch 방식으로 안정적으로 동작합니다.
  */
 object RemoteConfigManager {
 
     /**
      * 일일 AI 스캔 한도 제한 기능 활성화 여부입니다.
-     * 출시 초기에는 무료 배포로 유저를 검증하기 위해 false로 설정하며,
-     * 차후 광고 기능을 얹을 때 원격으로 true로 전환할 수 있는 스위치 역할을 모사합니다.
+     * Firebase Remote Config 서버의 'limit_enabled' 변수값과 동기화됩니다.
      */
     var limitEnabled: Boolean = false
         private set
 
     /**
      * 하루에 무료로 제공할 최대 AI 카메라 스캔 횟수입니다.
+     * Firebase Remote Config 서버의 'daily_scan_limit' 변수값과 동기화됩니다.
      */
     var dailyScanLimit: Int = 5
         private set
 
     /**
-     * Firebase Remote Config의 설정값을 가져와 동기화하는 함수 시뮬레이터입니다.
-     * 현재는 로컬 디폴트 값을 사용하고, 나중에 Firebase 연동 시 내부 구현만 API 호출로 교체합니다.
+     * Firebase Remote Config 서버에 연결하여 최신 설정값을 가져오고 동기화합니다.
      */
     fun fetchAndActivate(context: Context, onComplete: () -> Unit = {}) {
-        // TODO: FirebaseRemoteConfig.getInstance() 로 대체 가능
-        // 현재는 시뮬레이션용 로컬 디폴트 설정을 고수합니다.
-        limitEnabled = false // 기본값: 비활성화 (무제한)
-        dailyScanLimit = 5   // 기본값: 일일 5회
-        onComplete()
+        val config = FirebaseRemoteConfig.getInstance()
+        
+        // 개발 및 테스트의 실시간 반영을 위해 최소 Fetch 주기를 0초로 설정합니다.
+        // (주의: 프로덕션 배포 시에는 API 제한 방지를 위해 적절한 값(예: 1~12시간)으로 늘려주세요.)
+        val settings = FirebaseRemoteConfigSettings.Builder()
+            .setMinimumFetchIntervalInSeconds(0)
+            .build()
+        config.setConfigSettingsAsync(settings)
+
+        // 오프라인 상태나 Fetch 실패 시 적용할 로컬 디폴트 값을 설정해 둡니다.
+        val defaults = mapOf(
+            "limit_enabled" to false,
+            "daily_scan_limit" to 5
+        )
+        config.setDefaultsAsync(defaults)
+
+        config.fetchAndActivate()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // 서버의 최신 설정값 반영
+                    limitEnabled = config.getBoolean("limit_enabled")
+                    dailyScanLimit = config.getLong("daily_scan_limit").toInt()
+                }
+                onComplete()
+            }
     }
 
     /**
