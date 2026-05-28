@@ -98,6 +98,10 @@ private fun TrashAiApp() {
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP) viewModel.resetScanSession()
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // 백그라운드에서 홈 화면을 보거나 다른 일을 하다가 앱으로 복귀했을 때 Firebase 최신 설정을 실시간 동기화
+                app.trashai.data.RemoteConfigManager.fetchAndActivate(context)
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
