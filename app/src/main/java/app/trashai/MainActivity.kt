@@ -1383,8 +1383,8 @@ private fun RemainingScanPill(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(Tokens.Radius24))
-            .background(Color.White.copy(alpha = 0.12f))
-            .border(0.5.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(Tokens.Radius24))
+            .background(Color(0xFFFFC0CB).copy(alpha = 0.15f))
+            .border(0.5.dp, Color(0xFFFFC0CB).copy(alpha = 0.3f), RoundedCornerShape(Tokens.Radius24))
             .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
