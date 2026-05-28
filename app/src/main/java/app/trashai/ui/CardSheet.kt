@@ -473,7 +473,7 @@ private fun StepCard(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                "$number단계",
+                "${number}단계",
                 color = Tokens.Primary,
                 fontWeight = FontWeight.Bold,
                 fontSize = badgeTextSize,
