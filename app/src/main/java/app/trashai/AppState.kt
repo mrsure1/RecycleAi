@@ -115,7 +115,7 @@ class AppState(private val appContext: Context) {
                 _state.update { it.copy(regionOrdinance = ord) }
                 refreshRegionExtras(ord?.regionCode)
             }.onFailure { e ->
-                _state.update { it.copy(sheetState = SheetState.Error(e.message ?: "DB open failed")) }
+                _state.update { it.copy(sheetState = SheetState.Error(e.message ?: "데이터베이스를 열지 못했습니다.")) }
             }
         }
     }
@@ -149,7 +149,7 @@ class AppState(private val appContext: Context) {
                     lastCapturedJpeg = jpegBytes,
                 )
             }
-            groundAndPresent(listOf(rawLabel!!), sourceLabel = "Cached Match")
+            groundAndPresent(listOf(rawLabel!!), sourceLabel = "캐시 매칭")
             return
         }
 
@@ -168,7 +168,7 @@ class AppState(private val appContext: Context) {
                         startAskUser(reason = "로컬 검색 매칭 결과가 없습니다.")
                     } else {
                         val keywords = r.value.map { it.item_name }
-                        groundAndPresent(keywords, sourceLabel = "Local ML Match")
+                        groundAndPresent(keywords, sourceLabel = "로컬 머신러닝 매칭")
                     }
                 }
                 else -> startAskUser(reason = "로컬 매칭 오류 발생")
@@ -196,14 +196,14 @@ class AppState(private val appContext: Context) {
                 } else {
                     // 상위 유사도 매칭된 아이템명을 키워드로 획득하여 로컬 DB Grounding 수행
                     val keywords = r.value.map { it.item_name }
-                    groundAndPresent(keywords, sourceLabel = "Vector Search")
+                    groundAndPresent(keywords, sourceLabel = "인공지능 벡터 검색")
                 }
             }
             is SupabaseResult.HttpError -> _state.update {
-                it.copy(sheetState = SheetState.Error("Gemini API 오류 (${r.code})\n${r.body}"))
+                it.copy(sheetState = SheetState.Error("인공지능 API 오류 (${r.code})\n${r.body}"))
             }
             is SupabaseResult.ParseError -> _state.update {
-                it.copy(sheetState = SheetState.Error("Gemini 응답 파싱 실패:\n${r.rawSnippet}"))
+                it.copy(sheetState = SheetState.Error("인공지능 응답 분석 실패:\n${r.rawSnippet}"))
             }
             is SupabaseResult.NetworkError -> _state.update {
                 it.copy(sheetState = SheetState.Error("네트워크 오류: ${r.detail}"))
@@ -212,7 +212,7 @@ class AppState(private val appContext: Context) {
                 it.copy(sheetState = SheetState.Error("입력 오류: ${r.detail}"))
             }
             SupabaseResult.NotConfigured -> _state.update {
-                it.copy(sheetState = SheetState.Error("GEMINI_API_KEY가 설정되지 않았습니다."))
+                it.copy(sheetState = SheetState.Error("인공지능 API 키가 설정되지 않았습니다."))
             }
         }
     }
@@ -401,8 +401,8 @@ class AppState(private val appContext: Context) {
             return
         }
 
-        // 캐싱된 로컬 매칭이 아닌 실제 AI/벡터 검색 API를 호출한 경우에만 일일 스캔 사용량 카운트를 증가
-        if (sourceLabel != "Cached Match") {
+        // 캐싱된 로컬 매칭이 아닌 실제 인공지능/벡터 검색 API를 호출한 경우에만 일일 스캔 사용량 카운트를 증가
+        if (sourceLabel != "캐시 매칭") {
             withContext(Dispatchers.IO) {
                 app.trashai.data.ScanLimitManager.incrementScanCount(appContext)
             }

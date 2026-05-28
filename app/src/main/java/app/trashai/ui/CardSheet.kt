@@ -205,7 +205,7 @@ fun ItemRuleBody(
             )
             Spacer(Modifier.width(Tokens.Sp8))
             Text(
-                "ADVERTISEMENT (광고 지면)",
+                "광고 지면",
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = Tokens.TextSecondary.copy(alpha = 0.6f),

@@ -163,7 +163,7 @@ private fun TrashAiApp() {
                 )
                 IconChip(
                     icon = Icons.Outlined.Chat,
-                    label = "AI 묻기",
+                    label = "인공지능 묻기",
                     onClick = { viewModel.startAskUser() },
                 )
             }
@@ -497,7 +497,7 @@ private fun BottomCardContent(
                 ) {
                     Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(Tokens.Sp8))
-                    Text("AI에게 직접 설명하기", fontWeight = FontWeight.SemiBold)
+                    Text("인공지능에게 직접 설명하기", fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -779,8 +779,8 @@ private fun AnimatedLoadingScreen(text: String) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "AI",
-                    fontSize = 28.sp,
+                    text = "인공지능",
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Tokens.Primary,
                     modifier = Modifier.graphicsLayer {
@@ -859,7 +859,7 @@ private fun IdleCardContent(onShowInfo: (String) -> Unit) {
             Spacer(Modifier.width(Tokens.Sp16))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "AI 분석 대기 중",
+                    "인공지능 분석 대기 중",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Tokens.TextPrimary,
@@ -915,7 +915,7 @@ private fun IdleCardContent(onShowInfo: (String) -> Unit) {
             val steps = listOf(
                 Triple("1단계 : 인식", "사물 주위에 녹색 박스가 나타납니다.", Icons.Outlined.CenterFocusWeak),
                 Triple("2단계 : 선택", "초록색 박스를 터치하거나, 버릴 물건을 손가락으로 직접 화면에 대고 네모나게 그려보세요.\n(사용자가 선택한 네모는 주황색 박스입니다)", Icons.Outlined.TouchApp),
-                Triple("3단계 : 분석", "AI가 재질을 판별하고 배출법을 안내합니다.", Icons.Outlined.Analytics)
+                Triple("3단계 : 분석", "인공지능이 재질을 판별하고 배출법을 안내합니다.", Icons.Outlined.Analytics)
             )
 
             steps.forEachIndexed { index, (title, desc, icon) ->
@@ -984,7 +984,7 @@ private fun IdleCardContent(onShowInfo: (String) -> Unit) {
             Icon(Icons.Outlined.Lightbulb, contentDescription = null, tint = Tokens.Accent, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(Tokens.Sp12))
             Text(
-                "팁: 헷갈리거나 복잡한 쓰레기는 우측 상단의 'AI 묻기' 버튼을 눌러 직접 질문해보세요.",
+                "팁: 헷갈리거나 복잡한 쓰레기는 우측 상단의 '인공지능 묻기' 버튼을 눌러 직접 질문해보세요.",
                 fontSize = 12.sp,
                 color = Tokens.TextPrimary,
                 lineHeight = 18.sp,
@@ -1060,7 +1060,7 @@ private fun AskUserContent(
             }
             Spacer(Modifier.width(Tokens.Sp12))
             Column {
-                Text("AI에게 설명하기", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
+                Text("인공지능에게 설명하기", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
                 Spacer(Modifier.height(Tokens.Sp4))
                 Text(s.prompt, fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
             }
@@ -1080,11 +1080,11 @@ private fun AskUserContent(
                     val isAi = turn.from == SheetState.Speaker.Ai
                     Row(verticalAlignment = Alignment.Top) {
                         Text(
-                            text = if (isAi) "AI" else "ME",
+                            text = if (isAi) "인공지능" else "나",
                             color = if (isAi) Tokens.Primary else Tokens.TextSecondary,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.width(24.dp).padding(top = 2.dp)
+                            modifier = Modifier.width(48.dp).padding(top = 2.dp)
                         )
                         Text(
                             text = turn.text,
@@ -1165,7 +1165,7 @@ private fun CorrectionInput(onSubmit: (String) -> Unit) {
         }
         Spacer(Modifier.height(Tokens.Sp8))
         Text(
-            "재질이나 상태를 묘사해주시면 AI가 다시 안내해 드립니다.",
+            "재질이나 상태를 묘사해주시면 인공지능이 다시 안내해 드립니다.",
             fontSize = Tokens.CaptionSize,
             color = Tokens.TextSecondary
         )
@@ -1283,9 +1283,9 @@ private fun AdLimitReachedContent(
                 }
                 Spacer(Modifier.width(Tokens.Sp12))
                 Column {
-                    Text("일일 AI 스캔 한도 초과", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
+                    Text("일일 인공지능 스캔 한도 초과", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
                     Spacer(Modifier.height(Tokens.Sp4))
-                    Text("무료 인식 5/5 소모", fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
+                    Text("무료 인식 5회 중 5회 사용", fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
                 }
             }
             Spacer(Modifier.height(Tokens.Sp16))
@@ -1298,7 +1298,7 @@ private fun AdLimitReachedContent(
                     .padding(Tokens.Sp16)
             ) {
                 Text(
-                    text = "오늘 제공된 무료 AI 스캔 5회를 모두 사용하셨습니다.\n30초 이하의 짧은 보상형 동영상 광고를 시청하시면 즉시 AI 스캔 5회가 충전됩니다.",
+                    text = "오늘 제공된 무료 인공지능 스캔 5회를 모두 사용하셨습니다.\n30초 이하의 짧은 보상형 동영상 광고를 시청하시면 즉시 스캔 5회가 충전됩니다.",
                     fontSize = 14.sp,
                     color = Tokens.TextSecondary,
                     lineHeight = 20.sp
