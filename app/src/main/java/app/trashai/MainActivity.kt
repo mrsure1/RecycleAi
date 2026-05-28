@@ -955,7 +955,7 @@ private fun IdleCardContent(onShowInfo: (String) -> Unit) {
                     }
                     Spacer(Modifier.width(Tokens.Sp12))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
+                        Text(title, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = if (title.startsWith("2단계")) {
@@ -975,9 +975,9 @@ private fun IdleCardContent(onShowInfo: (String) -> Unit) {
                             } else {
                                 AnnotatedString(desc)
                             },
-                            fontSize = 13.sp,
+                            fontSize = 15.sp,
                             color = Tokens.TextSecondary,
-                            lineHeight = 18.sp
+                            lineHeight = 22.sp
                         )
                     }
                 }
@@ -1003,9 +1003,9 @@ private fun IdleCardContent(onShowInfo: (String) -> Unit) {
             Spacer(Modifier.width(Tokens.Sp12))
             Text(
                 "팁: 헷갈리거나 복잡한 쓰레기는 우측 상단의 '인공지능 묻기' 버튼을 눌러 직접 질문해보세요.",
-                fontSize = 12.sp,
+                fontSize = 15.sp,
                 color = Tokens.TextPrimary,
-                lineHeight = 18.sp,
+                lineHeight = 22.sp,
                 modifier = Modifier.weight(1f)
             )
         }
