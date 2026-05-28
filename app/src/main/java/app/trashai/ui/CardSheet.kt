@@ -443,7 +443,8 @@ private fun StepCard(
             .padding(horizontal = horizontalPadding, vertical = verticalPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 1. 아이콘 대신 숫자를 둥근 원에 채워 공간활용을 획기적으로 개선
+        // 1. 둥근 원 안에 해당 단계 아이콘을 반투명하게 배치하고, 그 위에 단계 숫자를 겹쳐서 공간활용 극대화
+        val stepIcon = getStepIcon(cleanBody)
         Box(
             modifier = Modifier
                 .size(iconSize)
@@ -454,6 +455,12 @@ private fun StepCard(
                 ),
             contentAlignment = Alignment.Center
         ) {
+            Icon(
+                imageVector = stepIcon,
+                contentDescription = null,
+                tint = if (number == 1) Color.White.copy(alpha = 0.25f) else Tokens.Primary.copy(alpha = 0.2f),
+                modifier = Modifier.fillMaxSize(0.6f)
+            )
             Text(
                 text = "$number",
                 color = if (number == 1) Color.White else Tokens.Primary,
