@@ -418,11 +418,11 @@ private fun StepCard(
     val icon = getStepIcon(cleanBody)
 
     val fontSize = (13 + (7 * fraction)).sp
-    val iconSize = (16 + (28 * fraction)).dp
-    val verticalPadding = (10 + (10 * fraction)).dp
-    val horizontalPadding = (12 + (8 * fraction)).dp
-    val badgeSize = (20 + (6 * fraction)).dp
-    val badgeTextSize = (10 + (2 * fraction)).sp
+    val iconSize = (28 + (28 * fraction)).dp
+    val verticalPadding = (8 + (10 * fraction)).dp
+    val horizontalPadding = (10 + (8 * fraction)).dp
+    val badgeSize = (14 + (6 * fraction)).dp
+    val badgeTextSize = (8 + (2 * fraction)).sp
 
     Row(
         modifier = modifier
@@ -446,40 +446,44 @@ private fun StepCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(iconSize)
-                .clip(CircleShape)
-                .background(
-                    if (number == 1) Tokens.PrimarySoft
-                    else Tokens.SurfaceMuted
-                ),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.size(iconSize)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (number == 1) Tokens.Primary else Tokens.TextSecondary,
-                modifier = Modifier.size(iconSize * 0.6f)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape)
+                    .background(
+                        if (number == 1) Tokens.PrimarySoft
+                        else Tokens.SurfaceMuted
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = if (number == 1) Tokens.Primary else Tokens.TextSecondary,
+                    modifier = Modifier.size(iconSize * 0.55f)
+                )
+            }
+            
+            Box(
+                modifier = Modifier
+                    .size(badgeSize)
+                    .align(Alignment.BottomEnd)
+                    .clip(CircleShape)
+                    .background(Tokens.Primary)
+                    .border(1.dp, Color.White, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "$number",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = badgeTextSize,
+                )
+            }
         }
         
-        Spacer(Modifier.width(Tokens.Sp12))
-
-        Box(
-            modifier = Modifier
-                .size(badgeSize)
-                .clip(CircleShape)
-                .background(Tokens.PrimarySoft),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                "${number}단계",
-                color = Tokens.Primary,
-                fontWeight = FontWeight.Bold,
-                fontSize = badgeTextSize,
-            )
-        }
-
         Spacer(Modifier.width(Tokens.Sp12))
 
         TextWithDialablePhones(
@@ -488,7 +492,7 @@ private fun StepCard(
             style = androidx.compose.ui.text.TextStyle(
                 color = Tokens.TextPrimary,
                 fontSize = fontSize,
-                lineHeight = fontSize * 1.4f,
+                lineHeight = fontSize * 1.35f,
                 fontWeight = if (fraction > 0.5f) FontWeight.ExtraBold else FontWeight.Bold,
                 textAlign = TextAlign.Start,
             ),
