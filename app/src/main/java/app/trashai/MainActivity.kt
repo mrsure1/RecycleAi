@@ -1130,9 +1130,31 @@ private fun AskUserContent(
                 unfocusedContainerColor = Tokens.Surface, // 비포커스 시에도 깔끔하게 흰색 배경 유지
                 focusedBorderColor = Tokens.Primary,
                 unfocusedBorderColor = Tokens.Divider, // 테두리를 명확하게 구분할 수 있도록 설정
-            )
+            ),
+            trailingIcon = {
+                val v = text.trim()
+                if (v.isNotEmpty()) {
+                    androidx.compose.material3.IconButton(
+                        onClick = {
+                            text = ""
+                            onSubmit(v)
+                        },
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .size(36.dp)
+                            .background(Tokens.Primary, RoundedCornerShape(percent = 50))
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "보내기",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
         )
-        Spacer(Modifier.height(Tokens.Sp16))
+        Spacer(Modifier.height(Tokens.Sp8))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1141,23 +1163,6 @@ private fun AskUserContent(
         ) {
             TextButton(onClick = onDismiss) {
                 Text("취소", color = Tokens.TextSecondary, fontWeight = FontWeight.SemiBold)
-            }
-            Spacer(Modifier.width(Tokens.Sp8))
-            Button(
-                onClick = {
-                    val v = text.trim()
-                    if (v.isNotEmpty()) {
-                        text = ""
-                        onSubmit(v)
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Tokens.Primary),
-                shape = RoundedCornerShape(Tokens.Radius12),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
-            ) {
-                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(Tokens.Sp8))
-                Text("보내기", fontWeight = FontWeight.Bold)
             }
         }
     }
