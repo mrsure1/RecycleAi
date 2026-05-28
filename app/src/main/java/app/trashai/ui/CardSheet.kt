@@ -125,6 +125,16 @@ fun ItemRuleBody(
         )
     }
 
+    // ---- [광고 게재 위치] AdMob 배너 광고 삽입 지점 ----------------------------
+    // TODO: AdMob SDK 연동 완료 후 이 위치에 BannerAd 컴포저블을 삽입하세요.
+    // 예시:
+    //   BannerAdView(
+    //       adUnitId = "ca-app-pub-xxxx/xxxxxx",
+    //       modifier = Modifier.fillMaxWidth().height(60.dp)
+    //   )
+    // 현재는 무료 버전이므로 광고 지면을 사용자에게 노출하지 않습니다.
+    // ---------------------------------------------------------------------------
+
     // ---- E-순환거버넌스 무상 수거 안내 (DB 기반 CommonGuide 출력) ----------------------------------------
     if (commonGuide != null) {
         Spacer(Modifier.height(Tokens.Sp16))
@@ -175,16 +185,6 @@ fun ItemRuleBody(
             fontWeight = FontWeight.Bold
         )
     }
-
-    // ---- [광고 게재 위치] AdMob 배너 광고 삽입 지점 ----------------------------
-    // TODO: AdMob SDK 연동 완료 후 이 위치에 BannerAd 컴포저블을 삽입하세요.
-    // 예시:
-    //   BannerAdView(
-    //       adUnitId = "ca-app-pub-xxxx/xxxxxx",
-    //       modifier = Modifier.fillMaxWidth().height(60.dp)
-    //   )
-    // 현재는 무료 버전이므로 광고 지면을 사용자에게 노출하지 않습니다.
-    // ---------------------------------------------------------------------------
 }
 
 @Composable
