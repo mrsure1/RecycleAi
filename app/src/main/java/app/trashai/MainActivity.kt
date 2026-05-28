@@ -76,6 +76,10 @@ import kotlin.math.sin
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // AdMob SDK 초기화
+        com.google.android.gms.ads.MobileAds.initialize(this) {}
+
         setContent {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize(), color = Color.Black) {

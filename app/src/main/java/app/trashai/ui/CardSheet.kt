@@ -125,15 +125,15 @@ fun ItemRuleBody(
         )
     }
 
-    // ---- [광고 게재 위치] AdMob 배너 광고 삽입 지점 ----------------------------
-    // TODO: AdMob SDK 연동 완료 후 이 위치에 BannerAd 컴포저블을 삽입하세요.
-    // 예시:
-    //   BannerAdView(
-    //       adUnitId = "ca-app-pub-xxxx/xxxxxx",
-    //       modifier = Modifier.fillMaxWidth().height(60.dp)
-    //   )
-    // 현재는 무료 버전이므로 광고 지면을 사용자에게 노출하지 않습니다.
-    // ---------------------------------------------------------------------------
+    Spacer(Modifier.height(Tokens.Sp12))
+    // ---- [광고 게재 위치] AdMob 테스트 배너 광고 실시간 송출 ---------------------
+    BannerAdView(
+        adUnitId = "ca-app-pub-3940256099942544/6300978111",
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+    )
+    Spacer(Modifier.height(Tokens.Sp12))
 
     // ---- E-순환거버넌스 무상 수거 안내 (DB 기반 CommonGuide 출력) ----------------------------------------
     if (commonGuide != null) {
@@ -185,6 +185,23 @@ fun ItemRuleBody(
             fontWeight = FontWeight.Bold
         )
     }
+}
+
+@Composable
+fun BannerAdView(
+    adUnitId: String,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.ui.viewinterop.AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            com.google.android.gms.ads.AdView(context).apply {
+                setAdSize(com.google.android.gms.ads.AdSize.BANNER)
+                setAdUnitId(adUnitId)
+                loadAd(com.google.android.gms.ads.AdRequest.Builder().build())
+            }
+        }
+    )
 }
 
 @Composable

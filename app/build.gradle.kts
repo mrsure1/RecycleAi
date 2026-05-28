@@ -91,4 +91,5 @@ dependencies {
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.config)
+    implementation("com.google.android.gms:play-services-ads:23.0.0")
 }
