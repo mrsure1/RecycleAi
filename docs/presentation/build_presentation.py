@@ -285,7 +285,7 @@ def build(animated: bool = False, *, output: Path | None = None) -> Path:
 
     # 7 아키텍처
     s = _blank(prs)
-    _bar(s, "기술 구조 (쉬운 말로)")
+    _bar(s, "기술 구조")
     _bullets(
         s,
         [
