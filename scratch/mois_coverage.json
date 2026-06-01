@@ -1,0 +1,37 @@
+{
+  "sqlite": [
+    {
+      "path": "app\\src\\main\\assets\\wasteguide.sqlite3",
+      "has_mois_table": true,
+      "total_sigungu_regions": 252,
+      "mois_rows_total": 0,
+      "mois_rows_with_disposal_time": 0,
+      "sigungu_with_any_mois": 0,
+      "sigungu_with_disposal_time": 0,
+      "sigungu_missing_mois": 252,
+      "sigungu_missing_time": 252,
+      "region_contacts": 5
+    },
+    {
+      "path": "data\\wasteguide_dictionary.sqlite3",
+      "has_mois_table": true,
+      "total_sigungu_regions": 252,
+      "mois_rows_total": 0,
+      "mois_rows_with_disposal_time": 0,
+      "sigungu_with_any_mois": 0,
+      "sigungu_with_disposal_time": 0,
+      "sigungu_missing_mois": 252,
+      "sigungu_missing_time": 252,
+      "region_contacts": 5
+    }
+  ],
+  "supabase": {
+    "configured": true,
+    "total_rows": 24410,
+    "fetched_rows": 24410,
+    "rows_with_disposal_time": 24410,
+    "distinct_sigungu_with_any_row": 245,
+    "distinct_sigungu_with_disposal_time": 245,
+    "pct_rows_with_time": 100.0
+  }
+}

@@ -43,6 +43,7 @@ fun TextWithDialablePhones(
     modifier: Modifier = Modifier,
     style: TextStyle = TextStyle.Default,
     highlightEcycle: Boolean = true,
+    onBeforeDial: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val annotated = remember(text, highlightEcycle) {
@@ -56,7 +57,10 @@ fun TextWithDialablePhones(
             onClick = { offset ->
                 annotated.getStringAnnotations(tag = "phone", start = offset, end = offset)
                     .firstOrNull()
-                    ?.let { dialPhoneNumber(context, it.item) }
+                    ?.let {
+                        onBeforeDial()
+                        dialPhoneNumber(context, it.item)
+                    }
             },
         )
     } else {

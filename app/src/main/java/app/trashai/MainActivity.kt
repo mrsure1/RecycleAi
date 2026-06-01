@@ -17,9 +17,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -44,15 +42,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -61,6 +54,7 @@ import app.trashai.clarify.ClarificationChips
 import app.trashai.ui.CommonGuideSection
 import app.trashai.ui.InfoSheetContent
 import app.trashai.ui.ItemRuleBody
+import app.trashai.ui.PinchZoomScrollColumn
 import app.trashai.ui.RegionOfficialInfoSection
 import app.trashai.ui.TextWithDialablePhones
 import app.trashai.ui.Tokens
@@ -74,34 +68,72 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 class MainActivity : ComponentActivity() {
+    private val inAppUpdate by lazy { app.trashai.update.InAppUpdateManager(this) }
+
+    // 인앱 업데이트 플로 결과 런처 (사용자가 취소해도 다음 실행 때 다시 안내)
+    private val updateLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { /* no-op */ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // AdMob SDK 초기화
-        com.google.android.gms.ads.MobileAds.initialize(this) {}
+        // AdMob SDK 초기화 후 보상형 광고 미리 로드
+        com.google.android.gms.ads.MobileAds.initialize(this) {
+            app.trashai.ads.RewardedAdManager.preload(applicationContext)
+        }
+
+        // 새 버전이 있으면 백그라운드 다운로드(Flexible) 시작
+        inAppUpdate.checkForUpdate(updateLauncher)
 
         setContent {
             MaterialTheme {
                 Surface(Modifier.fillMaxSize(), color = Color.Black) {
-                    TrashAiApp()
+                    TrashAiApp(updateManager = inAppUpdate)
                 }
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        // 자리를 비운 사이 다운로드가 끝났다면 설치 안내를 다시 띄움
+        inAppUpdate.onResume()
+    }
+
+    override fun onDestroy() {
+        inAppUpdate.unregister()
+        super.onDestroy()
+    }
 }
 
 @Composable
-private fun TrashAiApp() {
+private fun TrashAiApp(updateManager: app.trashai.update.InAppUpdateManager? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val viewModel = remember { AppState(context.applicationContext) }
     val state by viewModel.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val keepResultOnNextStop = remember { mutableStateOf(false) }
+
+    // 인앱 업데이트 다운로드가 끝나면 "다시 시작" 안내를 표시
+    if (updateManager?.isDownloadReady == true) {
+        UpdateReadyDialog(
+            onRestart = { updateManager.completeUpdate() },
+            onLater = { updateManager.dismissDownloadReady() },
+        )
+    }
 
     // 백그라운드/종료 후 재개 시 분석 결과·캡처 이미지를 초기화해 새 스캔부터 시작
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) viewModel.resetScanSession()
+            if (event == Lifecycle.Event.ON_STOP) {
+                if (keepResultOnNextStop.value) {
+                    keepResultOnNextStop.value = false
+                } else {
+                    viewModel.resetScanSession()
+                }
+            }
             if (event == Lifecycle.Event.ON_RESUME) {
                 // 백그라운드에서 홈 화면을 보거나 다른 일을 하다가 앱으로 복귀했을 때 Firebase 최신 설정을 실시간 동기화
                 app.trashai.data.RemoteConfigManager.fetchAndActivate(context)
@@ -129,7 +161,10 @@ private fun TrashAiApp() {
         )
     }
 
-    val isResultView = state.sheetState is SheetState.Item || state.sheetState is SheetState.Clarify || state.sheetState is SheetState.Confirming
+    val isResultView = state.sheetState is SheetState.Item ||
+        state.sheetState is SheetState.Clarify ||
+        state.sheetState is SheetState.Confirming ||
+        state.sheetState is SheetState.AdLimitReached
     val topWeight by animateFloatAsState(
         targetValue = if (isResultView) 0.25f else 1.0f,
         animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
@@ -261,75 +296,18 @@ private fun TrashAiApp() {
             tonalElevation = 6.dp,
             shadowElevation = 8.dp,
         ) {
-            val configuration = LocalConfiguration.current
-            val density = LocalDensity.current
-            val screenWidthPx = remember(configuration, density) {
-                with(density) { configuration.screenWidthDp.dp.toPx() }
-            }
+            var sheetScrollState by remember { mutableStateOf<ScrollState?>(null) }
+            var suppressScrollShrink by remember { mutableStateOf(false) }
 
-            var scale by remember { mutableFloatStateOf(1f) }
-            var offsetX by remember { mutableFloatStateOf(0f) }
-
-            LaunchedEffect(scale) {
-                if (scale <= 1f) {
-                    offsetX = 0f
-                }
-            }
-
-            val transformState = rememberTransformableState { zoomChange, panChange, _ ->
-                val newScale = (scale * zoomChange).coerceIn(1f, 3f)
-                scale = newScale
-                if (newScale > 1f) {
-                    val maxOffset = (screenWidthPx * (newScale - 1f)) / 2f
-                    offsetX = (offsetX + panChange.x).coerceIn(-maxOffset, maxOffset)
-                }
-            }
-            val scrollState = rememberScrollState()
-
-            LaunchedEffect(state.sheetState) {
-                scrollState.scrollTo(0)
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .transformable(state = transformState)
-                    .pointerInput(scale, screenWidthPx) {
-                        if (scale > 1f) {
-                            detectHorizontalDragGestures { change, dragAmount ->
-                                change.consume()
-                                val maxOffset = (screenWidthPx * (scale - 1f)) / 2f
-                                offsetX = (offsetX + dragAmount).coerceIn(-maxOffset, maxOffset)
-                            }
-                        }
-                    }
-            ) {
-                // 스크롤 영역 (확대/축소 및 실제 높이 반영)
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(scrollState)
+            Box(modifier = Modifier.fillMaxSize()) {
+                PinchZoomScrollColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    resetKey = state.sheetState,
+                    onScrollState = { sheetScrollState = it },
+                    onZoomedChange = { suppressScrollShrink = it },
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .layout { measurable, constraints ->
-                                val placeable = measurable.measure(constraints)
-                                val width = placeable.width
-                                val height = (placeable.height * scale).toInt()
-                                layout(width, height) {
-                                    placeable.placeRelative(0, 0)
-                                }
-                            }
-                            .graphicsLayer(
-                                scaleX = scale,
-                                scaleY = scale,
-                                translationX = offsetX,
-                                transformOrigin = TransformOrigin(0.5f, 0f)
-                            )
-                            .padding(Tokens.Sp24)
-                    ) {
-                         BottomCardContent(
+                    Column(Modifier.padding(Tokens.Sp24)) {
+                        BottomCardContent(
                             state = state,
                             onPickItem = { viewModel.pickItem(it) },
                             onConfirmYes = { viewModel.confirmYes() },
@@ -338,16 +316,24 @@ private fun TrashAiApp() {
                             onSubmitText = { viewModel.submitUserText(it) },
                             onDismiss = { viewModel.dismissSheet() },
                             onShowInfo = { viewModel.showInfo(it) },
-                            onTabChange = { scope.launch { scrollState.scrollTo(0) } },
-                            onRefill = { jpeg, label -> viewModel.refillAndRetry(jpeg, label) },
-                            scrollValue = scrollState.value
+                            onTabChange = { scope.launch { sheetScrollState?.scrollTo(0) } },
+                            onRefill = { _, _ -> viewModel.refillAndReturnToCamera() },
+                            onBeforeDial = { keepResultOnNextStop.value = true },
+                            scrollValue = if (suppressScrollShrink) {
+                                0
+                            } else {
+                                sheetScrollState?.value ?: 0
+                            },
                         )
                     }
                 }
 
                 // Floating Scroll Arrow Button (화면 하단 고정 배치)
                 if (state.sheetState == SheetState.Idle) {
-                    val isAtBottom = scrollState.maxValue > 0 && scrollState.value >= scrollState.maxValue - 20
+                    val scrollState = sheetScrollState
+                    val isAtBottom = scrollState != null &&
+                        scrollState.maxValue > 0 &&
+                        scrollState.value >= scrollState.maxValue - 20
                     val infiniteTransition = rememberInfiniteTransition(label = "floating_arrow")
                     val arrowOffset by infiniteTransition.animateFloat(
                         initialValue = 0f,
@@ -369,10 +355,11 @@ private fun TrashAiApp() {
                         SmallFloatingActionButton(
                             onClick = {
                                 scope.launch {
+                                    val s = sheetScrollState ?: return@launch
                                     if (isAtBottom) {
-                                        scrollState.animateScrollTo(0)
+                                        s.animateScrollTo(0)
                                     } else {
-                                        scrollState.animateScrollTo(scrollState.maxValue)
+                                        s.animateScrollTo(s.maxValue)
                                     }
                                 }
                             },
@@ -471,6 +458,7 @@ private fun BottomCardContent(
     onShowInfo: (String) -> Unit,
     onTabChange: () -> Unit = {},
     onRefill: (ByteArray, String?) -> Unit,
+    onBeforeDial: () -> Unit = {},
     scrollValue: Int = 0,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -496,6 +484,7 @@ private fun BottomCardContent(
                     regionOrdinance = state.regionOrdinance,
                     regionExtras = state.regionExtras,
                     scrollValue = scrollValue,
+                    onBeforeDial = onBeforeDial,
                 )
                 if (s.alternates.isNotEmpty()) {
                     Spacer(Modifier.height(Tokens.Sp16))
@@ -559,6 +548,7 @@ private fun BottomCardContent(
                             fontWeight = FontWeight.SemiBold,
                             lineHeight = 24.sp,
                         ),
+                        onBeforeDial = onBeforeDial,
                     )
                 }
                 Spacer(Modifier.height(Tokens.Sp16))
@@ -1182,8 +1172,49 @@ private fun CorrectionInput(onSubmit: (String) -> Unit) {
     }
 }
 
+@Composable
+private fun UpdateReadyDialog(
+    onRestart: () -> Unit,
+    onLater: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onLater,
+        icon = {
+            Icon(
+                imageVector = Icons.Outlined.SystemUpdate,
+                contentDescription = null,
+                tint = Tokens.RecycleGreen,
+            )
+        },
+        title = { Text("업데이트 준비 완료", fontWeight = FontWeight.ExtraBold) },
+        text = {
+            Text("새 버전 다운로드가 끝났어요. 지금 다시 시작하면 최신 버전으로 업데이트됩니다.")
+        },
+        confirmButton = {
+            Button(
+                onClick = onRestart,
+                colors = ButtonDefaults.buttonColors(containerColor = Tokens.RecycleGreen),
+            ) {
+                Text("지금 다시 시작", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onLater) { Text("나중에") }
+        },
+    )
+}
+
+private fun android.content.Context.findActivityOrNull(): android.app.Activity? {
+    var ctx: android.content.Context? = this
+    while (ctx is android.content.ContextWrapper) {
+        if (ctx is android.app.Activity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
+}
+
 /**
- * 일일 스캔 횟수 제한 도달 시 보상형 광고를 제공하고 재생을 모사하는 글래스모피즘 팝업 UI 컴포저블입니다.
+ * 일일 스캔 횟수 제한에 도달했을 때 일반 안내와 확실히 구분되는 충전 팝업형 카드입니다.
  */
 @Composable
 private fun AdLimitReachedContent(
@@ -1192,55 +1223,69 @@ private fun AdLimitReachedContent(
     onRefill: () -> Unit,
     onSearchManually: () -> Unit
 ) {
-    var isWatching by remember { mutableStateOf(false) }
-    var progress by remember { mutableStateOf(0f) }
+    val context = LocalContext.current
+    var isLoadingAd by remember { mutableStateOf(false) }
+    var adFailed by remember { mutableStateOf(false) }
+    val limit = app.trashai.data.RemoteConfigManager.dailyScanLimit
 
-    if (isWatching) {
-        // 3초간 비동기 딜레이를 주어 광고 동영상 시청 화면을 시뮬레이션
-        LaunchedEffect(Unit) {
-            val steps = 30
-            for (i in 1..steps) {
-                kotlinx.coroutines.delay(100)
-                progress = i.toFloat() / steps
-            }
+    // 화면 진입 시 보상형 광고를 미리 로드해 둡니다.
+    LaunchedEffect(Unit) {
+        app.trashai.ads.RewardedAdManager.preload(context.applicationContext)
+    }
+
+    val watchAd: () -> Unit = {
+        val activity = context.findActivityOrNull()
+        if (activity == null) {
             onRefill()
+        } else {
+            adFailed = false
+            app.trashai.ads.RewardedAdManager.showWhenReady(
+                activity = activity,
+                onReward = {
+                    isLoadingAd = false
+                    onRefill()
+                },
+                onUnavailable = {
+                    isLoadingAd = false
+                    adFailed = true
+                },
+                onWaiting = { isLoadingAd = true },
+            )
         }
+    }
 
+    if (isLoadingAd) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = Tokens.Sp24),
+                .clip(RoundedCornerShape(Tokens.Radius24))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF0F172A), Color(0xFF1E293B))
+                    )
+                )
+                .padding(Tokens.Sp24),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(100.dp)) {
-                CircularProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.fillMaxSize(),
-                    color = Tokens.Primary,
-                    strokeWidth = 6.dp,
-                    trackColor = Tokens.Divider
-                )
-                val remainingSeconds = (3 - (progress * 3).toInt()).coerceAtLeast(1)
-                Text(
-                    text = "${remainingSeconds}초",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Tokens.TextPrimary
-                )
-            }
+            CircularProgressIndicator(
+                modifier = Modifier.size(56.dp),
+                color = Tokens.NeonGreen,
+                strokeWidth = 5.dp,
+                trackColor = Color.White.copy(alpha = 0.18f)
+            )
             Spacer(Modifier.height(Tokens.Sp16))
             Text(
-                text = "광고 동영상 재생 중...",
+                text = "광고 불러오는 중",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Tokens.TextPrimary
+                color = Color.White
             )
             Spacer(Modifier.height(Tokens.Sp4))
             Text(
-                text = "보상을 획득하기 위해 잠시만 대기해 주세요.",
+                text = "잠시만 기다려 주세요. 광고 시청이 끝나면 분석 기회 ${limit}회가 충전됩니다.",
                 fontSize = Tokens.CaptionSize,
-                color = Tokens.TextSecondary,
+                color = Color.White.copy(alpha = 0.78f),
                 textAlign = TextAlign.Center
             )
         }
@@ -1248,84 +1293,207 @@ private fun AdLimitReachedContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = Tokens.Sp16)
+                .padding(vertical = Tokens.Sp8),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(Tokens.PrimarySoft),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Lock,
-                        contentDescription = null,
-                        tint = Tokens.Primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                Spacer(Modifier.width(Tokens.Sp12))
-                val limit = app.trashai.data.RemoteConfigManager.dailyScanLimit
-                Column {
-                    Text("일일 인공지능 스캔 한도 초과", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Tokens.TextPrimary)
-                    Spacer(Modifier.height(Tokens.Sp4))
-                    Text("무료 인식 ${limit}회 중 ${limit}회 사용", fontSize = Tokens.CaptionSize, color = Tokens.TextSecondary)
-                }
-            }
-            Spacer(Modifier.height(Tokens.Sp16))
-
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(Tokens.Radius12))
-                    .background(Tokens.SurfaceMuted)
-                    .padding(Tokens.Sp16)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color(0xFFFFFBEB), Color(0xFFFFF7ED))
+                        )
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = Color(0xFFF59E0B).copy(alpha = 0.38f),
+                        shape = RoundedCornerShape(28.dp),
+                    )
+                    .padding(Tokens.Sp20),
             ) {
-                val limit = app.trashai.data.RemoteConfigManager.dailyScanLimit
-                Text(
-                    text = "오늘 제공된 무료 인공지능 스캔 ${limit}회를 모두 사용하셨습니다.\n30초 이하의 짧은 보상형 동영상 광고를 시청하시면 즉시 스캔 ${limit}회가 충전됩니다.",
-                    fontSize = 14.sp,
-                    color = Tokens.TextSecondary,
-                    lineHeight = 20.sp
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Color(0xFFFEF3C7))
+                            .padding(horizontal = Tokens.Sp12, vertical = Tokens.Sp6),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Outlined.WarningAmber,
+                                contentDescription = null,
+                                tint = Tokens.WarningText,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(Modifier.width(Tokens.Sp6))
+                            Text(
+                                text = "오늘 무료 분석 0회 남음",
+                                color = Tokens.WarningText,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 13.sp,
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(Tokens.Sp16))
+
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .border(1.dp, Color(0xFFFBBF24), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Lock,
+                            contentDescription = null,
+                            tint = Color(0xFFD97706),
+                            modifier = Modifier.size(34.dp),
+                        )
+                    }
+
+                    Spacer(Modifier.height(Tokens.Sp16))
+
+                    Text(
+                        text = "AI 분석 기회를 모두 사용했어요",
+                        fontSize = 22.sp,
+                        lineHeight = 28.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Tokens.TextPrimary,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.height(Tokens.Sp8))
+                    Text(
+                        text = "광고를 한 번 시청하면 오늘 분석 기회 ${limit}회가 다시 충전되고, 카메라 화면에서 새로 스캔할 수 있습니다.",
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        color = Tokens.TextSecondary,
+                        textAlign = TextAlign.Center,
+                    )
+
+                    Spacer(Modifier.height(Tokens.Sp20))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(Tokens.Radius16))
+                            .background(Color.White.copy(alpha = 0.82f))
+                            .padding(Tokens.Sp12),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        LimitStat(label = "오늘 제공", value = "${limit}회")
+                        LimitDivider()
+                        LimitStat(label = "현재 남음", value = "0회", valueColor = Tokens.DangerText)
+                        LimitDivider()
+                        LimitStat(label = "광고 후", value = "${limit}회", valueColor = Tokens.RecycleGreen)
+                    }
+                }
             }
-            Spacer(Modifier.height(Tokens.Sp24))
+
+            Spacer(Modifier.height(Tokens.Sp16))
 
             Button(
-                onClick = { isWatching = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Tokens.Primary),
-                shape = RoundedCornerShape(Tokens.Radius12),
-                contentPadding = PaddingValues(vertical = 12.dp)
+                onClick = watchAd,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F172A)),
+                shape = RoundedCornerShape(Tokens.Radius16),
+                contentPadding = PaddingValues(horizontal = Tokens.Sp16)
             ) {
-                val limit = app.trashai.data.RemoteConfigManager.dailyScanLimit
                 Icon(
                     imageVector = Icons.Outlined.OndemandVideo,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(20.dp)
                 )
                 Spacer(Modifier.width(Tokens.Sp8))
-                Text("광고 시청하고 ${limit}회 충전", fontWeight = FontWeight.Bold)
+                Text(
+                    "광고 보고 ${limit}회 충전하기",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                )
             }
+
+            if (adFailed) {
+                Spacer(Modifier.height(Tokens.Sp8))
+                Text(
+                    text = "지금은 광고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+                    fontSize = 12.sp,
+                    color = Tokens.DangerText,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
             Spacer(Modifier.height(Tokens.Sp8))
+
             OutlinedButton(
                 onClick = onSearchManually,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(Tokens.Radius12),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(Tokens.Radius16),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Tokens.Primary),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Tokens.Primary)
+                border = androidx.compose.foundation.BorderStroke(1.dp, Tokens.Divider)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.width(Tokens.Sp8))
-                Text("직접 텍스트로 검색하기 (무료)", fontWeight = FontWeight.SemiBold)
+                Text("사진 대신 텍스트로 검색하기", fontWeight = FontWeight.Bold)
             }
+
+            Spacer(Modifier.height(Tokens.Sp8))
+
+            Text(
+                text = "텍스트 검색은 무료로 계속 이용할 수 있어요.",
+                fontSize = 12.sp,
+                color = Tokens.TextSecondary,
+                textAlign = TextAlign.Center,
+            )
         }
     }
+}
+
+@Composable
+private fun RowScope.LimitStat(
+    label: String,
+    value: String,
+    valueColor: Color = Tokens.TextPrimary,
+) {
+    Column(
+        modifier = Modifier.weight(1f),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = Tokens.TextSecondary,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = value,
+            fontSize = 17.sp,
+            color = valueColor,
+            fontWeight = FontWeight.ExtraBold,
+        )
+    }
+}
+
+@Composable
+private fun LimitDivider() {
+    Box(
+        modifier = Modifier
+            .height(34.dp)
+            .width(1.dp)
+            .background(Tokens.Divider),
+    )
 }
 
 /**

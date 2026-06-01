@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""RecycleAI 투자·발표용 PPTX 생성. 실행: python docs/presentation/build_presentation.py"""
+"""RecycleAI 프로젝트 발표용 PPTX 생성.
+
+기본(HTML 동기화·애니메이션 캡처):
+  python docs/presentation/build_presentation.py
+
+텍스트-only PPT:
+  python docs/presentation/build_presentation.py --text [--animate]
+"""
 
 from __future__ import annotations
 
@@ -12,7 +19,7 @@ from pptx.util import Inches, Pt
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
-OUT = ROOT / "RecycleAI_Investor_Pitch.pptx"
+OUT = ROOT / "RecycleAI_Project_Deck.pptx"
 
 # 브랜드
 GREEN = RGBColor(0x2D, 0x5A, 0x27)
@@ -59,7 +66,7 @@ def _bullets(slide, items: list[str], top=1.35, left=0.7, width=12.0, size=20):
         p.space_after = Pt(10)
 
 
-def _center_title(slide, title: str, sub: str | None = None):
+def _center_title(slide, title: str, sub: str | None = None, title_kr: str | None = None):
     slide.background.fill.solid()
     slide.background.fill.fore_color.rgb = BG
     t = slide.shapes.add_textbox(Inches(0.8), Inches(2.4), Inches(11.7), Inches(1.2))
@@ -70,8 +77,18 @@ def _center_title(slide, title: str, sub: str | None = None):
     p.font.size = Pt(40)
     p.font.bold = True
     p.font.color.rgb = GREEN
+    if title_kr:
+        kr = slide.shapes.add_textbox(Inches(0.8), Inches(3.35), Inches(11.7), Inches(0.6))
+        kf = kr.text_frame
+        kf.text = title_kr
+        kp = kf.paragraphs[0]
+        kp.alignment = PP_ALIGN.CENTER
+        kp.font.size = Pt(24)
+        kp.font.bold = True
+        kp.font.color.rgb = GREEN
     if sub:
-        s = slide.shapes.add_textbox(Inches(1.2), Inches(3.6), Inches(10.9), Inches(1.5))
+        sub_top = 4.15 if title_kr else 3.6
+        s = slide.shapes.add_textbox(Inches(1.2), Inches(sub_top), Inches(10.9), Inches(1.5))
         sf = s.text_frame
         sf.text = sub
         sp = sf.paragraphs[0]
@@ -126,7 +143,38 @@ def _image_or_placeholder(slide, path: Path | None, left, top, w, h, caption: st
     cap.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
 
 
-def build() -> Path:
+def _video_or_placeholder(
+    slide,
+    path: Path | None,
+    left: float,
+    top: float,
+    w: float,
+    h: float,
+    placeholder: str,
+) -> None:
+    if path and path.exists():
+        slide.shapes.add_movie(
+            str(path),
+            Inches(left),
+            Inches(top),
+            width=Inches(w),
+            height=Inches(h),
+            mime_type="video/mp4",
+        )
+    else:
+        ph = slide.shapes.add_shape(1, Inches(left), Inches(top), Inches(w), Inches(h))
+        ph.fill.solid()
+        ph.fill.fore_color.rgb = RGBColor(0xE2, 0xE8, 0xF0)
+        ph.line.color.rgb = GRAY
+        tf = ph.text_frame
+        tf.text = placeholder
+        tf.paragraphs[0].alignment = PP_ALIGN.CENTER
+        tf.paragraphs[0].font.size = Pt(14)
+        tf.paragraphs[0].font.color.rgb = GRAY
+        tf.vertical_anchor = MSO_ANCHOR.MIDDLE
+
+
+def build(animated: bool = False) -> Path:
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
@@ -135,8 +183,9 @@ def build() -> Path:
     s = _blank(prs)
     _center_title(
         s,
-        "RecycleAI (리사이클AI)",
-        "카메라만 비추면, 우리 동네 기준 분리배출을 안내합니다\n투자·파트너 소개 | 2026",
+        "RecycleAI",
+        "카메라만 비추면, 우리 동네 기준 분리배출을 안내합니다\n바이브코딩 프로젝트 발표 | 2026",
+        title_kr="리사이클AI",
     )
     foot = s.shapes.add_textbox(Inches(0.8), Inches(6.2), Inches(11.7), Inches(0.5))
     foot.text_frame.text = "발표자: _________  |  연락: _________"
@@ -293,22 +342,7 @@ def build() -> Path:
         "[캡처 삽입]\n실기기 스크린샷",
     )
 
-    # 11 경쟁 vs 우리 상세
-    s = _blank(prs)
-    _bar(s, "경쟁 앱 vs RecycleAI — 상세 안내 화면")
-    _image_or_placeholder(s, ASSETS / "competitor_detail.png", 0.6, 1.3, 5.8, 5.2, "품목별 텍스트 설명", "")
-    _image_or_placeholder(
-        s,
-        ASSETS / "recycleai_card.png",
-        6.9,
-        1.3,
-        5.8,
-        5.2,
-        "RecycleAI — 하단 결과 카드·픽토그램",
-        "[캡처 삽입]\n배출 요일·핀치 줌",
-    )
-
-    # 12 우리만의 장점
+    # 11 우리만의 장점
     s = _blank(prs)
     _bar(s, "RecycleAI가 어필할 5가지")
     _bullets(
@@ -323,7 +357,7 @@ def build() -> Path:
         size=22,
     )
 
-    # 13 시나리오
+    # 12 데모 시나리오 + 시연 영상
     s = _blank(prs)
     _bar(s, "데모 시나리오 (발표 시 연출)")
     _bullets(
@@ -335,6 +369,18 @@ def build() -> Path:
             "여러 물건 겹침 → 주황 드래그 박스로 한 개만 분석",
             "폐가전 스캔 → E-순환 무상 수거·1599-0903",
         ],
+        left=1.8,
+        width=5.4,
+        size=18,
+    )
+    _video_or_placeholder(
+        s,
+        ASSETS / "recycle_demo.mp4",
+        7.35,
+        1.45,
+        4.2,
+        5.55,
+        "[시연 영상]\nassets/recycle_demo.mp4",
     )
 
     # 14 현황
@@ -413,42 +459,321 @@ def build() -> Path:
         size=20,
     )
 
-    # 19 투자 포인트
+    # 19 프로젝트가 주는 메시지
     s = _blank(prs)
-    _bar(s, "투자자에게 드리는 메시지")
+    _bar(s, "이 프로젝트가 주는 메시지")
     _bullets(
         s,
         [
             "문제는 ‘분류 지식’이 아니라 ‘지역 이동’ — 인구 이동·고령화와 맞물림",
-            "공공 데이터 + 모바일 AI의 조합 — 이미 구현된 파이프라인",
+            "공공 데이터 + 모바일 AI의 조합 — 학생도 만들 수 있는 파이프라인",
             "공식 앱과 공존·차별 — 검색 앱을 대체가 아닌 ‘현장 카메라 레이어’",
-            "확장: 지자체 계약, 교육·ESG, 해외 교포·유학생 시장 검토",
+            "확장 아이디어: 지자체·학교 협력, 교육·ESG, 해외 교포·유학생 활용",
         ],
         size=20,
     )
 
-    # 20 Q&A
+    # 20 Supabase 정정
     s = _blank(prs)
-    _center_title(s, "감사합니다", "질문을 환영합니다")
-    qa = s.shapes.add_textbox(Inches(1.5), Inches(4.2), Inches(10.3), Inches(2.5))
+    _bar(s, "중간발표 정정 — Supabase는 런타임 검색 DB가 아닙니다", "수정·추가 하이라이트")
+    _table(
+        s,
+        ["구분", "중간발표에서 생긴 오해", "현재 발표 문서의 정정 표현"],
+        [
+            ["앱 실행 중", "Supabase에 연결해 실시간 사물 검색", "Supabase·PostgREST·백엔드 없음. 앱은 로컬 SQLite를 조회"],
+            ["AI 역할", "AI가 안내 문장을 직접 생성", "Gemini는 사진을 한글 키워드로 보조 변환. 안내문은 DB 문구만 표시"],
+            ["DB 갱신", "클라우드 DB를 계속 읽음", "행안부 DB가 730여 개에서 1500개로 확장되면, 배포 전 로컬 DB 업데이트 작업에만 임시 활용 가능"],
+            ["지역 안내", "전국 공통 안내", "품목·조례·MOIS 일정·문의처를 통합 SQLite로 묶고 GPS 지역 기준으로 분리 안내"],
+        ],
+        top=1.25,
+    )
+    note = s.shapes.add_textbox(Inches(0.7), Inches(6.15), Inches(12.0), Inches(0.6))
+    note.text_frame.text = "발표 멘트: “Supabase는 현재 앱 런타임 검색에 쓰지 않습니다. 향후 공공 DB 확장 시, 앱 안 SQLite를 재생성하는 임시 데이터 작업 도구로만 검토합니다.”"
+    note.text_frame.paragraphs[0].font.size = Pt(13)
+    note.text_frame.paragraphs[0].font.color.rgb = GREEN
+
+    # 21 Eval 테스트 케이스
+    s = _blank(prs)
+    _bar(s, "Eval 테스트 케이스 — 낮은 점수 항목은 이렇게 고쳤습니다")
+    _table(
+        s,
+        ["평가 항목", "테스트 기준", "수정 전", "수정 후"],
+        [
+            ["핀치 줌", "확대/축소 후 하단 고지까지 스크롤", "확대 시 하단 잘림", "layout 기반 줌 컬럼으로 전체 스크롤"],
+            ["Supabase 배제", "비행기 모드에서도 규칙 카드 표시", "클라우드 검색처럼 설명됨", "SQLite 번들 + Gemini 보조로 명확화"],
+            ["DB 통합", "품목·지역·MOIS·문의처가 한 카드에 결합", "지역별 안내 분산", "통합 SQLite에서 지역 기준 매칭"],
+            ["반복 안내문", "동일 주의문은 1회만 노출", "세척·라벨 안내 반복", "공통 가이드를 1회 카드로 단순화"],
+            ["오터치 방어", "작은 드래그·빈 화면 탭에서 복구", "작은 박스 후 UX 막힘", "32px 이하 취소, 배경 탭 해제"],
+        ],
+        top=1.15,
+    )
+
+    # 22 앱 실행 흐름
+    s = _blank(prs)
+    _bar(s, "앱 실행 흐름 — 사용자는 쉽게, 내부는 신뢰 데이터로")
+    process_steps = [
+        ("APP", "1. 아이콘 클릭", "CameraX 카메라\nGPS/Geocoder 준비"),
+        ("CAM", "2. 물건 비추기", "ML Kit이 후보 물체를\n초록 박스로 추적"),
+        ("AI", "3. 애매할 때 Gemini", "이미지를 한글 키워드로\n보조 변환"),
+        ("TAP", "4. 사물 클릭", "키워드와 품목 규칙\nDB 매칭"),
+        ("DB", "5. 지역 DB 결합", "조례·MOIS·문의처를\nSQLite에서 조회"),
+        ("CARD", "6. 결과 카드", "분류·배출 요일·전화\n한 화면 표시"),
+    ]
+    for idx, (icon, title, body) in enumerate(process_steps):
+        if idx < 3:
+            col = idx
+            row = 0
+        else:
+            col = 5 - idx
+            row = 1
+        left = 0.75 + col * 4.15
+        top = 1.35 + row * 2.45
+        card = s.shapes.add_shape(1, Inches(left), Inches(top), Inches(3.6), Inches(1.95))
+        card.fill.solid()
+        card.fill.fore_color.rgb = BG
+        card.line.color.rgb = GREEN_LIGHT
+        badge = s.shapes.add_shape(1, Inches(left + 0.18), Inches(top + 0.18), Inches(0.75), Inches(0.45))
+        badge.fill.solid()
+        badge.fill.fore_color.rgb = GREEN
+        badge.line.fill.background()
+        badge.text_frame.text = icon
+        badge.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+        badge.text_frame.paragraphs[0].font.size = Pt(11)
+        badge.text_frame.paragraphs[0].font.bold = True
+        badge.text_frame.paragraphs[0].font.color.rgb = WHITE
+        title_box = s.shapes.add_textbox(Inches(left + 1.05), Inches(top + 0.18), Inches(2.25), Inches(0.35))
+        title_box.text_frame.text = title
+        title_box.text_frame.paragraphs[0].font.size = Pt(14)
+        title_box.text_frame.paragraphs[0].font.bold = True
+        title_box.text_frame.paragraphs[0].font.color.rgb = DARK
+        body_box = s.shapes.add_textbox(Inches(left + 0.25), Inches(top + 0.85), Inches(3.1), Inches(0.8))
+        body_box.text_frame.text = body
+        for p in body_box.text_frame.paragraphs:
+            p.font.size = Pt(13)
+            p.font.color.rgb = GRAY
+            p.alignment = PP_ALIGN.CENTER
+    for left, top, mark in [
+        (4.42, 2.12, "→"),
+        (8.57, 2.12, "→"),
+        (10.62, 3.28, "↓"),
+        (8.57, 4.57, "←"),
+        (4.42, 4.57, "←"),
+    ]:
+        arrow = s.shapes.add_shape(1, Inches(left), Inches(top), Inches(0.36), Inches(0.36))
+        arrow.fill.solid()
+        arrow.fill.fore_color.rgb = RGBColor(0xD1, 0xFA, 0xE5)
+        arrow.line.color.rgb = GREEN_LIGHT
+        arrow.text_frame.text = mark
+        arrow.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
+        arrow.text_frame.paragraphs[0].font.size = Pt(13)
+        arrow.text_frame.paragraphs[0].font.bold = True
+        arrow.text_frame.paragraphs[0].font.color.rgb = GREEN
+
+    # 23 초기 무비용 마케팅
+    s = _blank(prs)
+    _bar(s, "초기 비용 0원 마케팅 실행법", "돈보다 중요한 것은 ‘누가 왜 써야 하는지’를 정확히 보여주는 것")
+    _table(
+        s,
+        ["방법", "바로 할 일", "기대 효과"],
+        [
+            ["스토어 ASO", "앱 제목·설명에 분리수거, 이사, 지역, 카메라 키워드 반영", "검색 유입 확보"],
+            ["지인 20명 테스트", "가족·학우·아파트 이웃에게 설치 요청 후 리뷰 받기", "초기 신뢰와 오류 발견"],
+            ["짧은 시연 영상", "고무장갑/종이컵/폐가전 15초 전후 비교 영상 제작", "앱 가치를 한눈에 전달"],
+            ["커뮤니티 공유", "아파트 카톡방·맘카페·지역 생활 게시판에 도움형 글 작성", "실사용자 반응 수집"],
+            ["블로그 글 3개", "‘일산 분리수거’, ‘이사 후 분리배출’ 같은 검색형 글 작성", "무료 검색 노출"],
+            ["피드백 루프", "불편 의견을 관리 페이지·스토어 업데이트 노트에 반영", "사용자가 개선을 체감"],
+        ],
+        top=1.15,
+    )
+    tip = s.shapes.add_textbox(Inches(0.7), Inches(6.25), Inches(12.0), Inches(0.55))
+    tip.text_frame.text = "초기 목표: 광고비 지출보다 ‘실제 써본 사람의 후기 20개’와 ‘짧은 시연 콘텐츠 3개’를 먼저 확보합니다."
+    tip.text_frame.paragraphs[0].font.size = Pt(13)
+    tip.text_frame.paragraphs[0].font.bold = True
+    tip.text_frame.paragraphs[0].font.color.rgb = GREEN
+
+    # 24 배포 후 광고 및 관리
+    s = _blank(prs)
+    _bar(s, "배포 후 광고 및 관리", "운영자가 코드·Remote Config로 노출과 사용량을 제어")
+    _image_or_placeholder(
+        s,
+        ASSETS / "recycleAI_02.png",
+        0.55,
+        1.25,
+        3.1,
+        5.1,
+        "사용자 화면: 스캔·결과 카드",
+        "[앱 캡처]\n스캔/결과 화면",
+    )
+
+    admin = s.shapes.add_shape(1, Inches(4.05), Inches(1.25), Inches(4.15), Inches(5.1))
+    admin.fill.solid()
+    admin.fill.fore_color.rgb = RGBColor(0xEC, 0xFD, 0xF5)
+    admin.line.color.rgb = GREEN_LIGHT
+    admin.text_frame.text = "관리 설정"
+    admin.text_frame.paragraphs[0].font.size = Pt(20)
+    admin.text_frame.paragraphs[0].font.bold = True
+    admin.text_frame.paragraphs[0].font.color.rgb = GREEN
+
+    settings = [
+        ("광고 배너", "SHOW_AD_BANNER\nfalse ↔ true"),
+        ("AdMob ID", "테스트 ID → 실제 광고 단위 ID"),
+        ("횟수제한", "Remote Config\nlimit_enabled"),
+        ("무료 횟수", "daily_scan_limit = 5"),
+    ]
+    for i, (title, body) in enumerate(settings):
+        top = 2.0 + i * 0.88
+        card = s.shapes.add_shape(1, Inches(4.35), Inches(top), Inches(3.55), Inches(0.68))
+        card.fill.solid()
+        card.fill.fore_color.rgb = WHITE
+        card.line.color.rgb = RGBColor(0xBB, 0xF7, 0xD0)
+        label = s.shapes.add_textbox(Inches(4.55), Inches(top + 0.1), Inches(1.2), Inches(0.25))
+        label.text_frame.text = title
+        label.text_frame.paragraphs[0].font.size = Pt(11)
+        label.text_frame.paragraphs[0].font.bold = True
+        label.text_frame.paragraphs[0].font.color.rgb = DARK
+        value = s.shapes.add_textbox(Inches(5.75), Inches(top + 0.08), Inches(1.95), Inches(0.45))
+        value.text_frame.text = body
+        for p in value.text_frame.paragraphs:
+            p.font.size = Pt(10)
+            p.font.color.rgb = GRAY
+
+    _bullets(
+        s,
+        [
+            "배너 광고: 결과 카드 영역에 AdMob 배너를 붙이고, 플래그 하나로 표시/숨김 전환",
+            "횟수제한: Firebase Remote Config에서 on/off와 일일 무료 스캔 수를 원격 조정",
+            "한도 초과 시: 보상형 광고 안내 → 시청 완료 후 로컬 카운트 충전 → 스캔 재개",
+            "출시 전 체크: 실제 광고 ID, 개인정보 처리방침, 광고 SDK 정책 검수",
+        ],
+        top=1.32,
+        left=8.45,
+        width=4.3,
+        size=14,
+    )
+    note = s.shapes.add_textbox(Inches(4.1), Inches(5.85), Inches(8.65), Inches(0.62))
+    note.text_frame.text = "운영 문서: docs/admin_operations_guide.md"
+    note.text_frame.paragraphs[0].font.size = Pt(13)
+    note.text_frame.paragraphs[0].font.bold = True
+    note.text_frame.paragraphs[0].font.color.rgb = GREEN
+
+    # 25 무료 로컬 TTS 나레이션
+    s = _blank(prs)
+    _bar(s, "시연 영상 나레이션 — 내 PC의 무료 TTS로 제작", "유료 성우·구독 없이, 로컬에서 음성 합성")
+    _bullets(
+        s,
+        [
+            "사용 모델: Supertone 'supertonic-3' (Hugging Face 공개 모델)",
+            "특징: 내 컴퓨터에 설치해 무료로 사용, 한국어 지원, GPU 없이 CPU로 동작",
+            "동작: 첫 1회만 모델 다운로드 → 이후 오프라인으로 WAV 합성",
+            "방법: pip install supertonic → 프리셋 목소리(M1~M5 / F1~F5) 선택 → 문장 입력 → WAV 저장",
+            "결과물: 시연 영상에 깔린 나레이션 음성을 이 방식으로 직접 생성",
+        ],
+        top=1.3,
+        size=18,
+    )
+    link = s.shapes.add_textbox(Inches(0.7), Inches(4.25), Inches(11.9), Inches(0.4))
+    link.text_frame.text = "모델 주소: https://huggingface.co/Supertone/supertonic-3"
+    link.text_frame.paragraphs[0].font.size = Pt(14)
+    link.text_frame.paragraphs[0].font.bold = True
+    link.text_frame.paragraphs[0].font.color.rgb = GREEN_LIGHT
+    code = s.shapes.add_shape(1, Inches(0.7), Inches(4.75), Inches(11.9), Inches(2.05))
+    code.fill.solid()
+    code.fill.fore_color.rgb = DARK
+    code.line.fill.background()
+    ctf = code.text_frame
+    ctf.word_wrap = True
+    code_lines = [
+        "# 설치 (한 번만)",
+        "pip install supertonic onnxruntime",
+        "",
+        "# 나레이션 만들기 (한국어 프리셋 M1)",
+        "python make_narration.py --file 원고.txt --voice M1 --out narration.wav",
+    ]
+    for i, line in enumerate(code_lines):
+        p = ctf.paragraphs[0] if i == 0 else ctf.add_paragraph()
+        p.text = line
+        p.font.size = Pt(14)
+        p.font.name = "Consolas"
+        p.font.color.rgb = RGBColor(0x86, 0xEF, 0xAC) if line.startswith("#") else WHITE
+
+    # 26 바이브코딩 사용 툴·모델 정리 (초보자용)
+    s = _blank(prs)
+    _bar(s, "이 앱은 무엇으로 만들었나 — 바이브코딩 도구 정리", "초보자도 따라 할 수 있도록, 쓴 도구·모델을 한눈에")
+    _table(
+        s,
+        ["분류", "사용한 도구 / 모델", "한 일 (쉽게)"],
+        [
+            ["AI 코딩", "Cursor (AI 코드 에디터)", "대화하듯 코드 작성·수정"],
+            ["앱 개발", "Kotlin · Jetpack Compose", "안드로이드 화면·기능 구현"],
+            ["카메라 인식", "CameraX · Google ML Kit", "사물 비추면 박스로 인식"],
+            ["AI 보조 인식", "Google Gemini API", "사진 → 한글 키워드 변환"],
+            ["데이터", "SQLite + Python 크롤링", "품목·지역 규칙을 앱 안에 저장"],
+            ["광고·설정", "Google AdMob · Firebase Remote Config", "배너 광고·무료 횟수 원격 조정"],
+            ["나레이션", "Supertonic 3 (무료 로컬 TTS)", "시연 영상 음성 합성"],
+            ["발표 자료", "python-pptx", "이 슬라이드 자동 생성"],
+        ],
+        top=1.2,
+    )
+    tip = s.shapes.add_textbox(Inches(0.7), Inches(6.55), Inches(12.0), Inches(0.6))
+    tip.text_frame.text = "핵심: 대부분 무료/공개 도구로 구성 — 유료 서버 없이 'AI와 대화하며' 앱·영상·발표까지 완성"
+    tip.text_frame.paragraphs[0].font.size = Pt(13)
+    tip.text_frame.paragraphs[0].font.bold = True
+    tip.text_frame.paragraphs[0].font.color.rgb = GREEN
+
+    # 27 SNS 홍보 영상 (UGC, Q&A 직전)
+    s = _blank(prs)
+    _bar(s, "SNS 홍보 영상 (15초)", "시연(12번)과 별도 · ▶ 재생 후 음소거 해제 권장")
+    _video_or_placeholder(
+        s,
+        ASSETS / "recycle_ad.mp4",
+        4.0,
+        1.35,
+        5.2,
+        5.7,
+        "[홍보 영상]\nassets/recycle_ad.mp4\n9:16 UGC",
+    )
+    hint = s.shapes.add_textbox(Inches(0.7), Inches(6.35), Inches(12.0), Inches(0.55))
+    hint.text_frame.text = "발표: 이 슬라이드에서 재생 → Q&A(다음)로 이동 · 파일 직접 실행: assets/recycle_ad.mp4"
+    hint.text_frame.paragraphs[0].font.size = Pt(12)
+    hint.text_frame.paragraphs[0].font.color.rgb = GRAY
+
+    # 28 Q&A
+    s = _blank(prs)
+    _center_title(s, "감사합니다", "바이브코딩을 배우는 우리 모두에게")
+    qa = s.shapes.add_textbox(Inches(1.5), Inches(4.15), Inches(10.3), Inches(2.3))
     tf = qa.text_frame
     for i, t in enumerate(
         [
-            "데모 APK / 스토어 링크: _________",
-            "연락처: _________",
-            "※ 슬라이드 10~11: RecycleAI 실기기 캡처를 assets/ 에 넣고 스크립트 재실행",
+            "좋은 개발자는 정답을 외우는 사람이 아니라,",
+            "문제를 끝까지 관찰하고 더 나은 질문을 던지는 사람입니다.",
+            "오늘의 작은 실험이 내일의 진짜 서비스가 됩니다.",
         ]
     ):
         p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
         p.text = t
         p.alignment = PP_ALIGN.CENTER
-        p.font.size = Pt(16)
-        p.font.color.rgb = GRAY
+        p.font.size = Pt(18 if i < 2 else 16)
+        p.font.bold = i < 2
+        p.font.color.rgb = DARK if i < 2 else GRAY
+
+    if animated:
+        from pptx_effects import set_slide_fade_transition
+
+        for i, slide in enumerate(prs.slides):
+            if i > 0:
+                set_slide_fade_transition(slide)
 
     prs.save(OUT)
     return OUT
 
 
 if __name__ == "__main__":
-    path = build()
-    print(f"생성 완료: {path}")
+    import sys
+
+    if "--text" in sys.argv:
+        path = build(animated="--animate" in sys.argv)
+        print(f"생성 완료 (텍스트): {path}")
+    else:
+        from sync_html_to_pptx import main as sync_main
+
+        sync_main()

@@ -186,36 +186,37 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 40px;
-      height: 40px;
-      border: 1px solid var(--glass-border);
-      background: var(--dark-card);
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(16, 185, 129, 0.32);
+      background: rgba(17, 24, 39, 0.72);
       backdrop-filter: blur(12px);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--text-secondary);
-      font-size: 18px;
+      color: #D1FAE5;
+      font-size: 22px;
       cursor: pointer;
       z-index: 100;
       transition: var(--transition);
-      opacity: 0.5;
+      opacity: 0.78;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.12);
     }
 
     .nav-arrow:hover {
       opacity: 1;
       border-color: var(--glass-border-hover);
       color: var(--green-light);
-      box-shadow: var(--shadow-glow);
+      box-shadow: 0 0 26px rgba(16, 185, 129, 0.22);
     }
 
     #nav-prev {
-      left: 12px;
+      left: 18px;
     }
 
     #nav-next {
-      right: 12px;
+      right: 18px;
     }
 
     /* ─────────────────────────────────────────────
@@ -621,6 +622,140 @@
       flex-shrink: 0;
     }
 
+    .correction-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      width: 100%;
+    }
+
+    .correction-card {
+      min-height: 170px;
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .correction-card.fixed {
+      border-color: rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .correction-card h4 {
+      font-size: 19px;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .correction-card p {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .highlight-note {
+      margin-top: 22px;
+      width: 100%;
+      padding: 18px 22px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--green-light);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .process-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      position: relative;
+    }
+
+    .process-card {
+      border-radius: var(--radius);
+      padding: 20px;
+      background: var(--dark-card);
+      border: 1px solid var(--glass-border);
+      min-height: 142px;
+      opacity: 0;
+      transform: translateY(20px);
+      position: relative;
+      z-index: 1;
+    }
+
+    .slide.active .process-card {
+      animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    .process-card .pc-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.13);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+
+    .process-card h4 {
+      font-size: 16px;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .process-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .process-link {
+      position: absolute;
+      z-index: 2;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      color: var(--green-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 800;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.22);
+    }
+
+    .process-link.l1 {
+      left: 31.6%;
+      top: 26%;
+    }
+
+    .process-link.l2 {
+      left: 65%;
+      top: 26%;
+    }
+
+    .process-link.l3 {
+      left: 65%;
+      top: 76%;
+    }
+
+    .process-link.l4 {
+      left: 31.6%;
+      top: 76%;
+    }
+
+    .process-link.down {
+      right: 14.6%;
+      top: 48%;
+    }
+
     /* 비디오 플레이스홀더 (스마트폰 프레임) */
     .phone-frame {
       width: 220px;
@@ -665,7 +800,32 @@
     .phone-frame .phone-screen video {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      background: #000;
+    }
+
+    /* 영상 컨트롤 「전체화면」 — 모니터 밖으로 나가지 않게 맞춤 */
+    .phone-frame .phone-screen video:fullscreen,
+    .demo-video-panel video:fullscreen,
+    video.demo-video-fullscreen:fullscreen {
+      object-fit: contain !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      margin: auto;
+      background: #000 !important;
+      box-sizing: border-box;
+    }
+
+    .phone-frame .phone-screen video::-webkit-full-screen,
+    .demo-video-panel video::-webkit-full-screen {
+      object-fit: contain !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      background: #000 !important;
     }
 
     .phone-frame .phone-screen .video-placeholder {
@@ -679,6 +839,73 @@
       font-size: 48px;
       opacity: 0.3;
       margin-bottom: 8px;
+    }
+
+    .phone-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .video-fullscreen-btn {
+      margin-top: 12px;
+      padding: 8px 18px;
+      border: 1px solid var(--green-light);
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green-light);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease;
+      font-family: inherit;
+    }
+
+    .video-fullscreen-btn:hover {
+      background: rgba(16, 185, 129, 0.28);
+      transform: translateY(-1px);
+    }
+
+    .video-fullscreen-btn:active {
+      transform: translateY(0);
+    }
+
+    /* 슬라이드 12 — 시연 영상 */
+    .demo-video-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 0;
+      padding: 8px 0 16px;
+    }
+
+    .demo-video-panel video {
+      width: 100%;
+      max-width: 1100px;
+      max-height: calc(100vh - 220px);
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+      background: #000;
+      object-fit: contain;
+    }
+
+    .demo-video-panel .video-missing {
+      width: 100%;
+      max-width: 900px;
+      aspect-ratio: 16 / 9;
+      border-radius: 20px;
+      background: var(--surface-muted);
+      border: 2px dashed var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-secondary);
+      font-size: 15px;
     }
 
     /* 프로그레스 스텝 */
@@ -783,76 +1010,158 @@
    개별 슬라이드 스타일
    ───────────────────────────────────────────── */
 
-    /* 슬라이드 1: 타이틀 */
+    /* 슬라이드 1: 타이틀 — 밝은 시네마틱 인트로 */
     #slide-1 {
-      background: var(--gradient-hero);
+      background:
+        radial-gradient(1200px 700px at 50% -10%, rgba(52, 211, 153, 0.28), transparent 60%),
+        radial-gradient(900px 600px at 15% 110%, rgba(16, 185, 129, 0.22), transparent 60%),
+        linear-gradient(135deg, #063b2e 0%, #0d6b4f 38%, #11936b 62%, #0a5440 100%);
       text-align: center;
       position: relative;
       overflow: hidden;
     }
 
-    #slide-1::before {
-      content: '';
+    /* 흐르는 오로라 광막 (영상 느낌의 배경) */
+    #slide-1 .aurora {
       position: absolute;
-      width: 600px;
-      height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.08), transparent 70%);
-      top: -100px;
-      right: -100px;
+      inset: -25%;
+      z-index: 0;
+      background:
+        radial-gradient(40% 55% at 25% 30%, rgba(110, 231, 183, 0.55), transparent 60%),
+        radial-gradient(45% 60% at 78% 25%, rgba(45, 212, 191, 0.45), transparent 62%),
+        radial-gradient(50% 65% at 60% 85%, rgba(16, 185, 129, 0.45), transparent 60%),
+        radial-gradient(35% 50% at 12% 80%, rgba(167, 243, 208, 0.4), transparent 60%);
+      filter: blur(40px) saturate(135%);
+      opacity: 0.9;
+      animation: auroraDrift 14s ease-in-out infinite alternate;
+      mix-blend-mode: screen;
+      pointer-events: none;
     }
 
-    #slide-1::after {
-      content: '';
+    /* 위로 흐르는 빛 입자 막 */
+    #slide-1 .light-grain {
       position: absolute;
-      width: 400px;
-      height: 400px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(45, 90, 39, 0.1), transparent 70%);
-      bottom: -50px;
-      left: -50px;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, transparent 60%);
+      background-size: 3px 3px;
+      opacity: 0.06;
+      pointer-events: none;
+    }
+
+    /* 대각선 라이트 스윕 (영상 하이라이트) */
+    #slide-1 .light-sweep {
+      position: absolute;
+      top: -60%;
+      left: -40%;
+      width: 60%;
+      height: 220%;
+      z-index: 1;
+      background: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.0) 40%, rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0.0) 60%, transparent 100%);
+      transform: rotate(8deg);
+      filter: blur(6px);
+      animation: lightSweep 6.5s ease-in-out 1.2s infinite;
+      pointer-events: none;
     }
 
     #slide-1 .hero-content {
       position: relative;
-      z-index: 2;
+      z-index: 3;
     }
 
-    #slide-1 .logo-mark {
-      width: 80px;
-      height: 80px;
-      border-radius: 20px;
-      background: var(--gradient-green);
+    /* 로고 리빌 무대 */
+    #slide-1 .logo-stage {
+      position: relative;
+      width: 168px;
+      height: 168px;
+      margin: 0 auto 30px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 36px;
-      margin: 0 auto 32px;
-      box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
-      animation: float 3s ease-in-out infinite;
+    }
+
+    /* 회전하는 화려한 글로우 링 */
+    #slide-1 .logo-stage .glow-ring {
+      position: absolute;
+      inset: -14px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #34D399, #6EE7B7, #ffffff, #2DD4BF, #10B981, #34D399);
+      filter: blur(10px);
+      opacity: 0.9;
+      animation: spin 6s linear infinite;
+    }
+
+    #slide-1 .logo-stage .glow-ring.r2 {
+      inset: -26px;
+      filter: blur(22px);
+      opacity: 0.55;
+      animation-duration: 9s;
+      animation-direction: reverse;
+    }
+
+    #slide-1 .logo-mark {
+      position: relative;
+      z-index: 2;
+      width: 132px;
+      height: 132px;
+      border-radius: 32px;
+      background: linear-gradient(150deg, #ffffff, #d1fae5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(16, 185, 129, 0.5), inset 0 0 22px rgba(255, 255, 255, 0.6);
+      animation: logoReveal 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.3) both, float 3.4s ease-in-out 1.1s infinite;
+    }
+
+    #slide-1 .logo-mark img {
+      width: 86%;
+      height: 86%;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 10px rgba(6, 78, 59, 0.35));
+    }
+
+    /* 로고에서 퍼지는 빛 파동 */
+    #slide-1 .logo-stage .pulse-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid rgba(209, 250, 229, 0.8);
+      opacity: 0;
+      animation: pulseRing 2.8s ease-out 0.8s infinite;
+    }
+
+    #slide-1 .logo-stage .pulse-ring.d2 {
+      animation-delay: 1.6s;
     }
 
     #slide-1 .hero-title {
-      font-size: 64px;
+      font-size: 70px;
       font-weight: 900;
       line-height: 1.1;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
+      animation: heroRise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.7s both;
     }
 
     #slide-1 .hero-title .brand {
-      background: var(--gradient-green);
+      background: linear-gradient(120deg, #ffffff 0%, #d1fae5 45%, #6EE7B7 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      text-shadow: 0 0 40px rgba(110, 231, 183, 0.55);
+      filter: drop-shadow(0 4px 24px rgba(16, 185, 129, 0.45));
     }
 
     #slide-1 .hero-sub {
-      font-size: 22px;
-      color: var(--text-secondary);
+      font-size: 23px;
+      color: #ECFDF5;
       font-weight: 300;
-      max-width: 700px;
+      max-width: 720px;
       margin: 0 auto 32px;
       line-height: 1.6;
+      text-shadow: 0 2px 16px rgba(6, 59, 46, 0.5);
+      animation: heroRise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 0.95s both;
     }
 
     #slide-1 .hero-tags {
@@ -860,26 +1169,45 @@
       gap: 12px;
       justify-content: center;
       flex-wrap: wrap;
+      animation: heroRise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) 1.2s both;
     }
 
     #slide-1 .hero-tag {
-      padding: 8px 20px;
+      padding: 9px 20px;
       border-radius: 100px;
-      border: 1px solid rgba(16, 185, 129, 0.2);
-      color: var(--green-light);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #ffffff;
       font-size: 13px;
-      font-weight: 500;
-      background: rgba(16, 185, 129, 0.06);
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 18px rgba(6, 59, 46, 0.25);
     }
 
     #slide-1 .presenter-info {
       position: absolute;
-      bottom: 60px;
+      bottom: 56px;
       left: 50%;
       transform: translateX(-50%);
-      color: var(--text-muted);
+      color: rgba(236, 253, 245, 0.8);
       font-size: 14px;
-      z-index: 2;
+      letter-spacing: 1px;
+      z-index: 3;
+      animation: heroRise 0.9s ease 1.5s both;
+    }
+
+    /* 오프닝 시네마틱 플래시 오버레이 (1회 재생) */
+    #slide-1 .intro-flash {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      background: radial-gradient(circle at 50% 42%, #ffffff 0%, #d1fae5 25%, transparent 60%);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    #slide-1.intro-play .intro-flash {
+      animation: introFlash 1.3s ease-out forwards;
     }
 
     /* 슬라이드 2: Problem — 좌우 분할 */
@@ -998,13 +1326,13 @@
     }
 
     /* Q&A 슬라이드 */
-    #slide-20 {
+    #slide-26 {
       text-align: center;
       background: var(--gradient-hero);
       position: relative;
     }
 
-    #slide-20 .thankyou {
+    #slide-26 .thankyou {
       font-size: clamp(48px, 6vw, 80px);
       font-weight: 900;
       background: var(--gradient-green);
@@ -1014,26 +1342,66 @@
       margin-bottom: 16px;
     }
 
-    #slide-20 .qa-sub {
+    #slide-26 .qa-sub {
       font-size: 24px;
       color: var(--text-secondary);
       font-weight: 300;
       margin-bottom: 48px;
     }
 
-    #slide-20 .contact-cards {
+    #slide-26 .logo-mark {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
       display: flex;
-      gap: 20px;
+      align-items: center;
       justify-content: center;
+      background: rgba(16, 185, 129, 0.12);
+      box-shadow: 0 0 32px rgba(16, 185, 129, 0.25);
     }
 
-    #slide-20 .contact-card {
-      padding: 20px 32px;
+    #slide-26 .logo-mark img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+
+    #slide-26 .qa-quotes {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-width: 920px;
+      margin: 0 auto;
+      align-items: stretch;
+    }
+
+    #slide-26 .contact-card {
+      padding: 22px 36px;
       border-radius: var(--radius);
       background: var(--dark-card);
       border: 1px solid var(--glass-border);
       color: var(--text-secondary);
-      font-size: 15px;
+      font-size: 16px;
+      line-height: 1.65;
+      text-align: center;
+    }
+
+    #slide-26 .qa-quote-line {
+      margin: 0;
+    }
+
+    #slide-26 .qa-quote-line + .qa-quote-line {
+      margin-top: 6px;
+    }
+
+    #slide-26 .qa-closing {
+      margin: 28px auto 0;
+      max-width: 920px;
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--text-secondary);
+      text-align: center;
     }
 
     /* ─────────────────────────────────────────────
@@ -1169,6 +1537,119 @@
 
       50% {
         box-shadow: 0 0 40px rgba(16, 185, 129, 0.4);
+      }
+    }
+
+    /* ── 슬라이드 1 시네마틱 인트로 키프레임 ── */
+    @keyframes auroraDrift {
+      0% {
+        transform: translate3d(-4%, -3%, 0) scale(1.05) rotate(0deg);
+      }
+
+      50% {
+        transform: translate3d(5%, 3%, 0) scale(1.18) rotate(4deg);
+      }
+
+      100% {
+        transform: translate3d(-3%, 4%, 0) scale(1.1) rotate(-3deg);
+      }
+    }
+
+    @keyframes lightSweep {
+      0% {
+        transform: translateX(0) rotate(8deg);
+        opacity: 0;
+      }
+
+      12% {
+        opacity: 1;
+      }
+
+      55% {
+        opacity: 1;
+      }
+
+      75%,
+      100% {
+        transform: translateX(360%) rotate(8deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes logoReveal {
+      0% {
+        opacity: 0;
+        transform: scale(0.2) rotate(-30deg);
+        filter: blur(14px);
+      }
+
+      60% {
+        opacity: 1;
+        transform: scale(1.12) rotate(4deg);
+        filter: blur(0);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes pulseRing {
+      0% {
+        opacity: 0.7;
+        transform: scale(0.85);
+      }
+
+      70% {
+        opacity: 0;
+        transform: scale(1.7);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.7);
+      }
+    }
+
+    @keyframes heroRise {
+      0% {
+        opacity: 0;
+        transform: translateY(28px);
+        filter: blur(6px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes introFlash {
+      0% {
+        opacity: 1;
+        transform: scale(0.6);
+      }
+
+      35% {
+        opacity: 0.9;
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(2.2);
       }
     }
 
@@ -1479,11 +1960,25 @@
 
     /* 시연 영상 섹션 */
     .demo-layout {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 48px;
-      width: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
       align-items: center;
+      gap: 20px;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .demo-layout > div:first-child {
+      flex: 0 1 auto;
+      max-width: 520px;
+    }
+
+    .demo-layout .phone-frame {
+      flex-shrink: 0;
     }
 
     /* 경쟁앱 소개 레이아웃 */
@@ -1585,7 +2080,7 @@
     <div id="progress-bar"></div>
 
     <!-- 슬라이드 카운터 -->
-    <div id="slide-counter">01 / 20</div>
+    <div id="slide-counter">01 / 27</div>
 
     <!-- 네비게이션 도트 -->
     <div id="nav-dots"></div>
@@ -1603,10 +2098,23 @@
       <span class="kbd">Space</span>
     </div>
 
-    <!-- ──────────── 슬라이드 1: 타이틀 ──────────── -->
-    <div class="slide active" id="slide-1">
+    <!-- ──────────── 슬라이드 1: 타이틀 (시네마틱 인트로) ──────────── -->
+    <div class="slide active intro-play" id="slide-1">
+      <!-- 영상 느낌의 움직이는 배경 레이어 -->
+      <div class="aurora"></div>
+      <div class="light-grain"></div>
+      <div class="light-sweep"></div>
+
       <div class="hero-content">
-        <div class="logo-mark">♻️</div>
+        <div class="logo-stage">
+          <span class="glow-ring r2"></span>
+          <span class="glow-ring"></span>
+          <span class="pulse-ring"></span>
+          <span class="pulse-ring d2"></span>
+          <div class="logo-mark">
+            <img src="../assets/recycle_logo2.png" alt="RecycleAI 로고">
+          </div>
+        </div>
         <h1 class="hero-title">
           <span class="brand" id="typing-target"></span>
         </h1>
@@ -1619,6 +2127,9 @@
         </div>
       </div>
       <div class="presenter-info">투자·파트너 소개 | 2026</div>
+
+      <!-- 오프닝 시네마틱 플래시 -->
+      <div class="intro-flash"></div>
     </div>
 
     <!-- ──────────── 슬라이드 2: Problem ──────────── -->
@@ -1956,36 +2467,11 @@
       </div>
     </div>
 
-    <!-- ──────────── 슬라이드 11: 경쟁 vs 우리 상세 ──────────── -->
+    <!-- ──────────── 슬라이드 11: 5대 장점 ──────────── -->
     <div class="slide" id="slide-11">
       <div class="slide-header">
         <div class="badge-line">
           <span class="number">10</span>
-          <span class="slide-badge">Detail Compare</span>
-        </div>
-        <h2>경쟁 앱 vs RecycleAI — 상세 안내 화면</h2>
-      </div>
-      <div class="compare-layout">
-        <div class="compare-panel">
-          <div class="panel-header">품목별 텍스트 설명</div>
-          <div class="panel-body">
-            <img src="../assets/competitor_detail.png" alt="경쟁앱 품목 상세 화면">
-          </div>
-        </div>
-        <div class="compare-panel">
-          <div class="panel-header green">RecycleAI — 하단 결과 카드·핀치줌</div>
-          <div class="panel-body">
-            <img src="../assets/recycleAI_03.png" alt="RecycleAI 결과 카드 화면">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ──────────── 슬라이드 12: 5대 장점 ──────────── -->
-    <div class="slide" id="slide-12">
-      <div class="slide-header">
-        <div class="badge-line">
-          <span class="number">11</span>
           <span class="slide-badge">Advantages</span>
         </div>
         <h2>RecycleAI가 어필할 5가지</h2>
@@ -2019,11 +2505,11 @@
       </div>
     </div>
 
-    <!-- ──────────── 슬라이드 13: 데모 시나리오 ──────────── -->
-    <div class="slide" id="slide-13">
+    <!-- ──────────── 슬라이드 12: 데모 시나리오 + 시연 영상 ──────────── -->
+    <div class="slide" id="slide-12">
       <div class="slide-header">
         <div class="badge-line">
-          <span class="number">12</span>
+          <span class="number">11</span>
           <span class="slide-badge">Demo</span>
         </div>
         <h2>데모 시나리오</h2>
@@ -2054,26 +2540,30 @@
             </div>
           </div>
         </div>
-        <!-- 스마트폰 영상 플레이스홀더 -->
-        <div class="phone-frame">
-          <div class="phone-screen">
-            <!-- 여기에 실제 시연 녹화 영상을 넣으세요 -->
-            <!-- <video src="assets/demo_video.mp4" autoplay loop muted playsinline></video> -->
-            <div class="video-placeholder">
-              <div class="play-icon">▶</div>
-              <p>시연 녹화 영상<br>삽입 위치</p>
-              <p style="font-size:11px;opacity:0.5;margin-top:8px;">assets/demo_video.mp4</p>
+        <!-- 시연 영상 (스마트폰 프레임) -->
+        <div class="phone-column">
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <video id="demo-video" src="../assets/recycle_demo.mp4" controls autoplay loop muted playsinline preload="auto"
+                title="RecycleAI 앱 시연"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"></video>
+              <div class="video-placeholder" style="display:none;">
+                <div class="play-icon">▶</div>
+                <p>시연 영상을 찾을 수 없습니다.</p>
+                <p style="font-size:11px;opacity:0.5;margin-top:8px;">assets/recycle_demo.mp4</p>
+              </div>
             </div>
           </div>
+          <button type="button" class="video-fullscreen-btn" data-video="demo-video" aria-label="시연 영상 전체화면">⛶ 전체화면으로 보기</button>
         </div>
       </div>
     </div>
 
-    <!-- ──────────── 슬라이드 14: 현재 상태 ──────────── -->
-    <div class="slide" id="slide-14">
+    <!-- ──────────── 슬라이드 13: 현재 상태 ──────────── -->
+    <div class="slide" id="slide-13">
       <div class="slide-header">
         <div class="badge-line">
-          <span class="number">13</span>
+          <span class="number">12</span>
           <span class="slide-badge">Status</span>
         </div>
         <h2>현재 상태 (2026)</h2>
@@ -2259,8 +2749,8 @@
         <div class="invest-card delay-2">
           <div class="inv-icon">🤖</div>
           <div>
-            <h4>AI 페어 프로그래밍의 힘</h4>
-            <p>복잡한 정규식, 지자체 코드 매핑, 대용량 SQLite 마이그레이션 스크립트를 AI와 완성하며 생산성을 극대화했습니다.</p>
+            <h4>AI와 함께 문제를 해결한 경험</h4>
+            <p>막히는 부분을 AI에게 설명하고, AI가 제안한 코드와 수정 방향을 사람이 검토하며 완성했습니다. 덕분에 복잡한 DB 정리와 오류 수정 시간을 줄일 수 있었습니다.</p>
           </div>
         </div>
         <div class="invest-card delay-3">
@@ -2280,19 +2770,311 @@
       </div>
     </div>
 
-    <!-- ──────────── 슬라이드 20: Q&A ──────────── -->
+    <!-- ──────────── 슬라이드 20: Supabase 정정 ──────────── -->
     <div class="slide" id="slide-20">
+      <div class="slide-header">
+        <div class="badge-line">
+          <span class="number">19</span>
+          <span class="slide-badge">Correction</span>
+        </div>
+        <h2>중간발표 정정 — Supabase는 런타임 검색 DB가 아닙니다</h2>
+        <p class="sub">수정·추가 하이라이트: 현재 앱은 Supabase에 연결해서 실시간 사물검색을 하지 않습니다</p>
+      </div>
+      <div class="correction-grid">
+        <div class="correction-card">
+          <h4>오해: Supabase 실시간 검색</h4>
+          <p>중간발표에서는 앱이 Supabase에 연결되어 사물을 실시간 검색하는 것처럼 전달되었습니다.</p>
+        </div>
+        <div class="correction-card fixed">
+          <h4>정정: 앱 안 SQLite 우선</h4>
+          <p>현재 앱 런타임에는 Supabase·PostgREST·백엔드가 없고, 품목·조례·MOIS·문의처를 로컬 SQLite에서 조회합니다.</p>
+        </div>
+        <div class="correction-card fixed">
+          <h4>Gemini의 실제 역할</h4>
+          <p>Gemini는 애매한 사진을 한글 키워드로 바꾸는 보조 역할만 합니다. 사용자에게 보이는 안내문은 공공 DB 문구입니다.</p>
+        </div>
+        <div class="correction-card fixed">
+          <h4>Supabase의 향후 사용 가능성</h4>
+          <p>행안부 품목 DB가 730여 개에서 1500개로 확장될 때, 앱 자체 SQLite 업데이트 작업에만 임시 도구로 검토합니다.</p>
+        </div>
+      </div>
+      <div class="highlight-note">
+        발표 멘트: “Supabase는 현재 앱에서 실시간 검색 DB로 쓰지 않습니다. 배포 전 데이터 정제·로컬 DB 재생성 단계에서만 임시 활용할 수 있습니다.”
+      </div>
+    </div>
+
+    <!-- ──────────── 슬라이드 21: Eval 테스트 케이스 ──────────── -->
+    <div class="slide" id="slide-21">
+      <div class="slide-header">
+        <div class="badge-line">
+          <span class="number">20</span>
+          <span class="slide-badge">Eval</span>
+        </div>
+        <h2>Eval 테스트 케이스 5개</h2>
+        <p class="sub">점수가 낮았던 항목은 수정 방향까지 함께 기록</p>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>평가 항목</th>
+            <th>테스트 기준</th>
+            <th>낮은 점수 원인</th>
+            <th>수정 내용</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="delay-1">
+            <td>핀치 줌</td>
+            <td>확대/축소 후 하단 고지까지 스크롤</td>
+            <td>확대 시 하단이 잘림</td>
+            <td class="highlight">layout 기반 줌 컬럼으로 전체 스크롤</td>
+          </tr>
+          <tr class="delay-2">
+            <td>Supabase 배제</td>
+            <td>비행기 모드에서도 규칙 카드 표시</td>
+            <td>클라우드 검색처럼 설명됨</td>
+            <td class="highlight">SQLite 번들 + Gemini 보조로 명확화</td>
+          </tr>
+          <tr class="delay-3">
+            <td>DB 통합</td>
+            <td>품목·지역·MOIS·문의처가 한 카드에 결합</td>
+            <td>지역별 안내가 분산됨</td>
+            <td class="highlight">통합 SQLite에서 지역 기준 매칭</td>
+          </tr>
+          <tr class="delay-4">
+            <td>반복 안내문</td>
+            <td>동일 주의문은 1회만 노출</td>
+            <td>세척·라벨 안내가 반복됨</td>
+            <td class="highlight">공통 가이드를 1회 카드로 단순화</td>
+          </tr>
+          <tr class="delay-5">
+            <td>오터치 방어</td>
+            <td>작은 드래그·빈 화면 탭에서 복구</td>
+            <td>작은 박스 후 UX가 막힘</td>
+            <td class="highlight">32px 이하 취소, 배경 탭 해제</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ──────────── 슬라이드 22: 앱 실행 흐름 ──────────── -->
+    <div class="slide" id="slide-22">
+      <div class="slide-header">
+        <div class="badge-line">
+          <span class="number">21</span>
+          <span class="slide-badge">How It Works</span>
+        </div>
+        <h2>앱 실행 흐름 — 사용자는 쉽게, 내부는 신뢰 데이터로</h2>
+        <p class="sub">아이콘 클릭부터 지역별 결과 카드까지</p>
+      </div>
+      <div class="process-grid">
+        <div class="process-card delay-1">
+          <div class="pc-icon">📱</div>
+          <h4>1. 아이콘 클릭</h4>
+          <p>앱 시작과 함께 CameraX 카메라, GPS, Geocoder를 준비합니다.</p>
+        </div>
+        <div class="process-card delay-2">
+          <div class="pc-icon">📷</div>
+          <h4>2. 물건 비추기</h4>
+          <p>ML Kit이 화면 속 후보 물체를 초록 박스로 추적합니다.</p>
+        </div>
+        <div class="process-card delay-3">
+          <div class="pc-icon">🧠</div>
+          <h4>3. 애매할 때 Gemini</h4>
+          <p>사진을 ‘종이컵/플라스틱병’ 같은 한글 키워드로만 변환합니다.</p>
+        </div>
+        <div class="process-card delay-6">
+          <div class="pc-icon">🃏</div>
+          <h4>6. 결과 카드</h4>
+          <p>분류, 비우기/헹구기, 배출 요일, E-순환 전화 연결을 한 화면에 표시합니다.</p>
+        </div>
+        <div class="process-card delay-5">
+          <div class="pc-icon">📍</div>
+          <h4>5. 지역 DB 결합</h4>
+          <p>GPS 지역코드로 조례, MOIS 배출 일정, 문의처를 SQLite에서 조회합니다.</p>
+        </div>
+        <div class="process-card delay-4">
+          <div class="pc-icon">👆</div>
+          <h4>4. 사물 클릭</h4>
+          <p>사용자가 선택한 키워드를 검색 키워드·품목 규칙 DB와 매칭합니다.</p>
+        </div>
+        <div class="process-link l1">→</div>
+        <div class="process-link l2">→</div>
+        <div class="process-link down">↓</div>
+        <div class="process-link l3">←</div>
+        <div class="process-link l4">←</div>
+      </div>
+    </div>
+
+    <!-- ──────────── 슬라이드 23: 초기 무비용 마케팅 ──────────── -->
+    <div class="slide" id="slide-23">
+      <div class="slide-header">
+        <div class="badge-line">
+          <span class="number">22</span>
+          <span class="slide-badge">Marketing Action</span>
+        </div>
+        <h2>초기 비용 0원 마케팅 실행법</h2>
+        <p class="sub">돈보다 중요한 것은 “누가 왜 써야 하는지”를 정확히 보여주는 것</p>
+      </div>
+      <div class="social-grid">
+        <div class="social-card delay-1">
+          <div class="sc-icon">🔎</div>
+          <h4>스토어 ASO</h4>
+          <p>앱 제목·설명에 분리수거, 이사, 지역, 카메라 키워드를 넣어 검색 유입을 만듭니다.</p>
+        </div>
+        <div class="social-card delay-2">
+          <div class="sc-icon">👥</div>
+          <h4>지인 20명 테스트</h4>
+          <p>가족·학우·아파트 이웃에게 설치를 부탁하고 첫 리뷰와 오류 피드백을 받습니다.</p>
+        </div>
+        <div class="social-card delay-3">
+          <div class="sc-icon">🎬</div>
+          <h4>15초 시연 영상</h4>
+          <p>고무장갑, 종이컵, 폐가전처럼 헷갈리는 물건을 전후 비교 영상으로 보여줍니다.</p>
+        </div>
+        <div class="social-card delay-4">
+          <div class="sc-icon">🏘️</div>
+          <h4>지역 커뮤니티 공유</h4>
+          <p>아파트 카톡방, 맘카페, 지역 생활 게시판에 광고가 아닌 도움형 글로 소개합니다.</p>
+        </div>
+        <div class="social-card delay-5">
+          <div class="sc-icon">📝</div>
+          <h4>블로그 글 3개</h4>
+          <p>“일산 분리수거”, “이사 후 분리배출” 같은 검색형 글로 무료 노출을 쌓습니다.</p>
+        </div>
+        <div class="social-card delay-6">
+          <div class="sc-icon">🔁</div>
+          <h4>피드백 루프</h4>
+          <p>불편 의견을 관리 페이지와 업데이트 노트에 반영해 사용자가 개선을 체감하게 합니다.</p>
+        </div>
+      </div>
+      <p style="margin-top:18px;font-size:14px;color:var(--green-light);text-align:center;">
+        초기 목표: 광고비보다 “실제 후기 20개”와 “짧은 시연 콘텐츠 3개”를 먼저 확보
+      </p>
+    </div>
+
+    <!-- ──────────── 슬라이드 24: 배포 후 광고 및 관리 ──────────── -->
+    <div class="slide" id="slide-24">
+      <div class="slide-header">
+        <div class="badge-line">
+          <span class="number">23</span>
+          <span class="slide-badge">Ad Ops</span>
+        </div>
+        <h2>배포 후 광고 및 관리</h2>
+        <p class="sub">운영자가 광고 노출과 무료 스캔 횟수를 제어하는 구조</p>
+      </div>
+      <div class="card-grid cols-2">
+        <div class="glass-card" style="opacity:0;animation:fadeInUp 0.5s 0.1s forwards;">
+          <div style="font-size:28px;margin-bottom:12px;">📢</div>
+          <h4 style="font-size:18px;color:var(--text-primary);margin-bottom:10px;">광고 배너 제어</h4>
+          <p style="font-size:15px;color:var(--text-secondary);line-height:1.65;">결과 카드 영역에 AdMob 배너를 붙이고, 코드 플래그로 표시/숨김을 전환합니다.</p>
+        </div>
+        <div class="glass-card" style="opacity:0;animation:fadeInUp 0.5s 0.2s forwards;">
+          <div style="font-size:28px;margin-bottom:12px;">🎛️</div>
+          <h4 style="font-size:18px;color:var(--text-primary);margin-bottom:10px;">Remote Config</h4>
+          <p style="font-size:15px;color:var(--text-secondary);line-height:1.65;">일일 무료 스캔 수와 횟수 제한 on/off를 원격 설정으로 운영합니다.</p>
+        </div>
+        <div class="glass-card" style="opacity:0;animation:fadeInUp 0.5s 0.3s forwards;">
+          <div style="font-size:28px;margin-bottom:12px;">🎁</div>
+          <h4 style="font-size:18px;color:var(--text-primary);margin-bottom:10px;">보상형 광고</h4>
+          <p style="font-size:15px;color:var(--text-secondary);line-height:1.65;">한도 초과 시 광고 시청 후 스캔 횟수를 충전하는 흐름을 제공합니다.</p>
+        </div>
+        <div class="glass-card" style="opacity:0;animation:fadeInUp 0.5s 0.4s forwards;">
+          <div style="font-size:28px;margin-bottom:12px;">✅</div>
+          <h4 style="font-size:18px;color:var(--text-primary);margin-bottom:10px;">출시 전 체크</h4>
+          <p style="font-size:15px;color:var(--text-secondary);line-height:1.65;">실제 광고 ID, 개인정보 처리방침, 광고 SDK 정책을 배포 전에 검수합니다.</p>
+        </div>
+      </div>
+      <p style="margin-top:22px;font-size:13px;color:var(--text-muted);text-align:center;">운영 문서: docs/admin_operations_guide.md</p>
+    </div>
+
+    <!-- ──────────── 슬라이드 25: 광고·업데이트 구현 완료 ──────────── -->
+    <div class="slide" id="slide-25">
+      <div class="slide-header">
+        <div class="badge-line">
+          <span class="number">24</span>
+          <span class="slide-badge">Shipped</span>
+        </div>
+        <h2>광고·업데이트 — 실제 구현 완료</h2>
+        <p class="sub">코드·플래그·원격 설정까지 출시 가능한 형태로 반영</p>
+      </div>
+      <div class="card-grid cols-2">
+        <div class="glass-card" style="opacity:0;animation:fadeInUp 0.5s 0.1s forwards;">
+          <div style="font-size:28px;margin-bottom:12px;">📢</div>
+          <h4 style="font-size:18px;color:var(--text-primary);margin-bottom:10px;">AdMob 배너 광고</h4>
+          <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">결과 카드에 배너 연동. <strong>SHOW_AD_BANNER</strong> 플래그로 표시/숨김, debug는 자동 테스트 광고.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">ads/AdIds.kt · ui/CardSheet.kt</p>
+        </div>
+        <div class="glass-card" style="opacity:0;animation:fadeInUp 0.5s 0.2s forwards;">
+          <div style="font-size:28px;margin-bottom:12px;">🎁</div>
+          <h4 style="font-size:18px;color:var(--text-primary);margin-bottom:10px;">보상형 광고</h4>
+          <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">횟수 초과 시 영상을 <strong>끝까지 시청</strong>하면 스캔 횟수 충전 후 카메라 복귀.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">ads/RewardedAdManager.kt</p>
+        </div>
+        <div class="glass-card" style="opacity:0;animation:fadeInUp 0.5s 0.3s forwards;">
+          <div style="font-size:28px;margin-bottom:12px;">🎛️</div>
+          <h4 style="font-size:18px;color:var(--text-primary);margin-bottom:10px;">원격 횟수 제한</h4>
+          <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Firebase Remote Config로 <strong>limit_enabled / daily_scan_limit</strong>를 재배포 없이 제어.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">RemoteConfig·ScanLimitManager</p>
+        </div>
+        <div class="glass-card" style="opacity:0;animation:fadeInUp 0.5s 0.4s forwards;">
+          <div style="font-size:28px;margin-bottom:12px;">🔄</div>
+          <h4 style="font-size:18px;color:var(--text-primary);margin-bottom:10px;">인앱 업데이트</h4>
+          <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Google Play <strong>Flexible</strong> 방식으로 새 버전 감지 → "업데이트 후 다시 시작" 안내.</p>
+          <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">update/InAppUpdateManager.kt</p>
+        </div>
+      </div>
+      <p style="margin-top:18px;font-size:13px;color:var(--text-muted);text-align:center;">셋업 가이드: docs/광고_업데이트_셋업가이드.md · 운영: docs/admin_operations_guide.md</p>
+    </div>
+
+    <!-- ──────────── 슬라이드 26: SNS 홍보 영상 (UGC) ──────────── -->
+    <div class="slide" id="slide-26-ad">
+      <div class="slide-header">
+        <div class="badge-line">
+          <span class="number">25</span>
+          <span class="slide-badge">Marketing Video</span>
+        </div>
+        <h2>SNS 홍보 영상 (15초)</h2>
+        <p class="sub">▶ 재생 후 <strong>스페이스·화살표</strong>는 슬라이드 이동 — 아래 <strong>전체화면</strong> 버튼 또는 영상 컨트롤 사용</p>
+      </div>
+      <div class="demo-layout" style="justify-content:center;max-width:920px;margin:0 auto;">
+        <div class="phone-column">
+          <div class="phone-frame" style="flex:0 0 auto;">
+            <div class="phone-screen">
+              <video id="ad-video" class="ad-promo-video" src="../assets/recycle_ad.mp4" controls playsinline preload="auto"
+                poster="../assets/recycleAI_01.png"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"></video>
+              <div class="video-placeholder" style="display:none;">
+                <div class="play-icon">▶</div>
+                <p>홍보 영상을 찾을 수 없습니다.</p>
+                <p style="font-size:11px;opacity:0.5;margin-top:8px;">assets/recycle_ad.mp4</p>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="video-fullscreen-btn" data-video="ad-video" aria-label="홍보 영상 전체화면">⛶ 전체화면으로 보기</button>
+        </div>
+      </div>
+      <p style="margin-top:14px;font-size:13px;color:var(--text-muted);text-align:center;">
+        릴스·틱톡·쇼츠용 9:16 · 파일만 재생하려면 <code style="font-size:12px;">docs/presentation/assets/recycle_ad.mp4</code> 더블클릭
+      </p>
+    </div>
+
+    <!-- ──────────── 슬라이드 27: Q&A ──────────── -->
+    <div class="slide" id="slide-26">
       <div class="hero-content" style="position:relative;z-index:2;">
-        <div class="logo-mark" style="animation:float 3s ease-in-out infinite, glowPulse 2s ease-in-out infinite;">♻️
+        <div class="logo-mark" style="animation:float 3s ease-in-out infinite, glowPulse 2s ease-in-out infinite;">
+          <img src="../assets/recycle_logo2.png" alt="RecycleAI 로고">
         </div>
-        <h1 class="thankyou">감사합니다</h1>
-        <p class="qa-sub">질문을 환영합니다</p>
-        <div class="contact-cards">
-          <div class="contact-card">📱 데모 APK / 스토어 링크: _________</div>
-          <div class="contact-card">✉️ 연락처: _________</div>
+        <h1 class="thankyou delay-1">감사합니다</h1>
+        <p class="qa-sub delay-2">바이브코딩을 배우는 우리 모두에게</p>
+        <div class="qa-quotes">
+          <div class="contact-card delay-3">
+            <p class="qa-quote-line">좋은 개발자는 정답을 외우는 사람이 아니라,</p>
+            <p class="qa-quote-line">문제를 끝까지 관찰하고 더 나은 질문을 던지는 사람입니다.</p>
+          </div>
         </div>
-        <p style="margin-top:32px;font-size:13px;color:var(--text-muted);">
-          ※ 슬라이드 10~11: RecycleAI 실기기 캡처를 assets/ 에 넣고 새로고침
+        <p class="qa-closing delay-4">
+          오늘의 작은 실험이 내일의 진짜 서비스가 됩니다. 계속 만들고, 고치고, 나아가 봅시다.
         </p>
       </div>
     </div>
@@ -2320,10 +3102,22 @@
         dotsContainer.appendChild(dot);
       }
 
+      function pauseAllVideos() {
+        document.querySelectorAll('video').forEach((v) => {
+          try { v.pause(); } catch (_) { /* ignore */ }
+        });
+      }
+
+      function isVideoUiTarget(el) {
+        if (!el || !el.closest) return false;
+        return !!el.closest('.phone-screen, .demo-video-panel, video');
+      }
+
       /* ─── 슬라이드 전환 ─── */
       function goToSlide(index) {
         if (isAnimating || index === currentIndex || index < 0 || index >= totalSlides) return;
         isAnimating = true;
+        pauseAllVideos();
 
         const prevSlide = slides[currentIndex];
         const nextSlide = slides[index];
@@ -2403,10 +3197,25 @@
           animateCount(el, target, suffix === '%' ? '%' : '+');
         });
 
-        // 타이핑 효과 (슬라이드 1)
+        // 타이핑 효과 + 시네마틱 인트로 리플레이 (슬라이드 1)
         if (slide.id === 'slide-1') {
+          replayIntro(slide);
           triggerTyping();
         }
+      }
+
+      /* ─── 슬라이드 1 시네마틱 인트로 리플레이 ─── */
+      function replayIntro(slide) {
+        slide.classList.remove('intro-play');
+        // reflow 강제 → 애니메이션 재시작
+        void slide.offsetWidth;
+        // 로고/타이틀 재진입 애니메이션 리셋
+        slide.querySelectorAll('.logo-mark, .hero-title, .hero-sub, .hero-tags, .presenter-info').forEach(el => {
+          el.style.animation = 'none';
+          void el.offsetWidth;
+          el.style.animation = '';
+        });
+        slide.classList.add('intro-play');
       }
 
       /* ─── 카운트업 애니메이션 ─── */
@@ -2439,8 +3248,18 @@
         }, 120);
       }
 
-      /* ─── 키보드 네비게이션 ─── */
+      /* ─── 키보드 네비게이션 (영상 재생 중·영상 UI에서는 슬라이드 이동 안 함) ─── */
       document.addEventListener('keydown', (e) => {
+        if (isVideoUiTarget(e.target) || document.activeElement?.tagName === 'VIDEO') {
+          return;
+        }
+        const activeSlide = slides[currentIndex];
+        const videoPlaying = activeSlide && [...activeSlide.querySelectorAll('video')].some(
+          (v) => !v.paused && v.currentTime > 0 && !v.ended
+        );
+        if (videoPlaying && (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowUp')) {
+          return;
+        }
         switch (e.key) {
           case 'ArrowRight':
           case 'ArrowDown':
@@ -2472,6 +3291,7 @@
       let touchStartX = 0;
       document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
       document.addEventListener('touchend', (e) => {
+        if (isVideoUiTarget(e.target)) return;
         const diff = touchStartX - e.changedTouches[0].clientX;
         if (Math.abs(diff) > 50) {
           diff > 0 ? nextSlide() : prevSlide();
@@ -2492,6 +3312,36 @@
         }
       };
 
+      window.requestVideoFullscreen = function (video) {
+        if (!video) return;
+        const enter =
+          video.requestFullscreen ||
+          video.webkitRequestFullscreen ||
+          video.msRequestFullscreen;
+        if (enter) {
+          Promise.resolve(enter.call(video)).catch(() => {
+            if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+          });
+        } else if (video.webkitEnterFullscreen) {
+          video.webkitEnterFullscreen();
+        }
+      };
+
+      document.querySelectorAll('.video-fullscreen-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-video');
+          const video = id ? document.getElementById(id) : btn.closest('.phone-column')?.querySelector('video');
+          if (video) {
+            video.play().catch(() => {});
+            requestVideoFullscreen(video);
+          }
+        });
+        ['pointerdown', 'keydown'].forEach((ev) => {
+          btn.addEventListener(ev, (e) => e.stopPropagation(), true);
+        });
+      });
+
       /* ─── PPT 16:9 자동 스케일링 ─── */
       const SLIDE_W = 1280;
       const SLIDE_H = 720;
@@ -2507,8 +3357,38 @@
       }
 
       window.addEventListener('resize', scalePresentation);
-      document.addEventListener('fullscreenchange', () => setTimeout(scalePresentation, 100));
+      document.addEventListener('fullscreenchange', () => {
+        setTimeout(scalePresentation, 100);
+        const fsVideo = document.fullscreenElement;
+        if (fsVideo && fsVideo.tagName === 'VIDEO') {
+          fsVideo.classList.add('demo-video-fullscreen');
+          fsVideo.style.objectFit = 'contain';
+          fsVideo.style.maxWidth = '100vw';
+          fsVideo.style.maxHeight = '100vh';
+        }
+        document.querySelectorAll('video.demo-video-fullscreen').forEach((v) => {
+          if (document.fullscreenElement !== v) {
+            v.classList.remove('demo-video-fullscreen');
+            v.style.objectFit = '';
+            v.style.maxWidth = '';
+            v.style.maxHeight = '';
+          }
+        });
+      });
       scalePresentation();
+
+      /* 시연 영상: 브라우저 전체화면 시 화면 안에 맞게 */
+      document.querySelectorAll('.phone-screen video, .demo-video-panel video, .ad-promo-video').forEach((video) => {
+        ['click', 'pointerdown', 'keydown'].forEach((ev) => {
+          video.addEventListener(ev, (e) => e.stopPropagation(), true);
+        });
+        video.addEventListener('webkitbeginfullscreen', () => {
+          video.style.objectFit = 'contain';
+        });
+        video.addEventListener('error', () => {
+          console.warn('영상 로드 실패:', video.currentSrc || video.src);
+        });
+      });
 
       /* ─── 초기 타이핑 효과 ─── */
       setTimeout(triggerTyping, 500);

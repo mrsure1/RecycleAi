@@ -2,6 +2,7 @@ package app.trashai
 
 import android.content.Context
 import app.trashai.data.CommonGuide
+import app.trashai.data.EcycleMatcher
 import app.trashai.data.ItemRule
 import app.trashai.data.KeywordHit
 import app.trashai.data.WasteGuideDb
@@ -224,7 +225,7 @@ class AppState(private val appContext: Context) {
             if (rule == null) {
                 _state.update { it.copy(sheetState = SheetState.Empty("선택한 품목을 찾지 못했습니다.")) }
             } else {
-                val guide = if (isEcycleItem(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
+                val guide = if (EcycleMatcher.showsEcycleGuide(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
                 _state.update { it.copy(sheetState = SheetState.Item(rule, alternates = emptyList(), commonGuide = guide)) }
             }
         }
@@ -350,7 +351,7 @@ class AppState(private val appContext: Context) {
                 _state.update { it.copy(sheetState = SheetState.Empty("DB에서 ${top.itemName}을 찾지 못했습니다.")) }
                 return@launch
             }
-            val guide = if (isEcycleItem(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
+            val guide = if (EcycleMatcher.showsEcycleGuide(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
             _state.update {
                 it.copy(
                     sheetState = SheetState.Confirming(
@@ -378,16 +379,13 @@ class AppState(private val appContext: Context) {
         }
     }
 
-    /**
-     * 보상형 광고 시청이 완료된 후 기기 한도를 충전하고, 차단되었던 캡처 스캔을 다시 시작합니다.
-     */
-    fun refillAndRetry(jpegBytes: ByteArray, rawLabel: String?) {
+    /** 보상형 광고 시청 완료 후 기기 한도를 충전하고 카메라 초기화면으로 돌아갑니다. */
+    fun refillAndReturnToCamera() {
         scope.launch {
-            _state.update { it.copy(sheetState = SheetState.Loading("광고 시청 완료! 스캔 분석 중…")) }
             withContext(Dispatchers.IO) {
                 app.trashai.data.ScanLimitManager.refillScanCount(appContext, app.trashai.data.RemoteConfigManager.dailyScanLimit)
             }
-            onCapture(jpegBytes, rawLabel)
+            _state.update { it.copy(sheetState = SheetState.Idle, lastCapturedJpeg = null) }
         }
     }
 
@@ -416,7 +414,7 @@ class AppState(private val appContext: Context) {
             if (rule == null) {
                 _state.update { it.copy(sheetState = SheetState.Empty("DB에서 ${top.itemName}을 찾지 못했습니다.")) }
             } else {
-                val guide = if (isEcycleItem(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
+                val guide = if (EcycleMatcher.showsEcycleGuide(rule)) withContext(Dispatchers.IO) { db.commonGuideById("ecycle") } else null
                 _state.update {
                     it.copy(
                         sheetState = SheetState.Confirming(
@@ -431,16 +429,6 @@ class AppState(private val appContext: Context) {
         } else {
             _state.update { it.copy(sheetState = SheetState.Clarify(hits)) }
         }
-    }
-
-    private fun isEcycleItem(rule: ItemRule): Boolean {
-        val cat = rule.primaryCategory ?: ""
-        val name = rule.itemName
-        return cat.contains("가전") || name.contains("TV") || name.contains("냉장고") || 
-               name.contains("세탁기") || name.contains("에어컨") || name.contains("전자레인지") || 
-               name.contains("청소기") || name.contains("컴퓨터") || name.contains("모니터") || 
-               name.contains("노트북") || name.contains("선풍기") || name.contains("가습기") || 
-               name.contains("헤어드라이어") || name.contains("러닝머신")
     }
 
     private fun expandKeywords(keywords: List<String>): List<String> {
@@ -458,6 +446,9 @@ class AppState(private val appContext: Context) {
             if (kwLower.contains("가전") || kwLower.contains("컴퓨터") || kwLower.contains("노트북") || kwLower.contains("pc")) {
                 expanded.add("노트북")
                 expanded.add("컴퓨터본체")
+            }
+            if (kwLower.contains("마우스") || kwLower.contains("mouse")) {
+                expanded.add("마우스")
             }
         }
         return expanded.distinct()

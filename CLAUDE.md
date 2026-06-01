@@ -47,6 +47,11 @@ Mapping: `data/region_mois_code_map.json` via `build_region_mois_map.py` (excel 
 - **Required for scan fallback**: `GEMINI_API_KEY`
 - **Pipeline only**: `WASTE_OPEN_API_KEY`
 
+## Windows terminal (UTF-8)
+
+Integrated terminal in this repo uses `.vscode/settings.json` (profile **RecycleAI UTF-8 PowerShell**).  
+For one-off shells: `. scripts/utf8_env.ps1` before `python` commands. See `docs/terminal_utf8.md`.
+
 ## Crawler etiquette
 
 - Default delay 4–8s for wasteguide.or.kr crawlers; keep identifiable User-Agent.

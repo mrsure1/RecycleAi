@@ -31,6 +31,8 @@ import app.trashai.data.MoisDisposalRule
 import app.trashai.data.RegionContact
 import app.trashai.data.RegionExtras
 
+private const val SHOW_AD_BANNER = true
+
 @Composable
 fun ItemRuleBody(
     rule: ItemRule, 
@@ -39,6 +41,7 @@ fun ItemRuleBody(
     regionOrdinance: app.trashai.data.RegionOrdinance? = null,
     regionExtras: RegionExtras = RegionExtras(),
     scrollValue: Int = 0,
+    onBeforeDial: () -> Unit = {},
 ) {
     // ---- Title row -----------------------------------------------------------
     Row(
@@ -111,7 +114,8 @@ fun ItemRuleBody(
             StepCard(
                 number = i + 1, 
                 body = step, 
-                fraction = fraction
+                fraction = fraction,
+                onBeforeDial = onBeforeDial,
             )
         }
     }
@@ -122,32 +126,34 @@ fun ItemRuleBody(
             regionLabel = regionLabel,
             regionOrdinance = regionOrdinance,
             regionExtras = regionExtras,
+            onBeforeDial = onBeforeDial,
         )
     }
 
-    Spacer(Modifier.height(Tokens.Sp12))
-    // ---- [광고 게재 위치] AdMob 테스트 배너 광고 실시간 송출 ---------------------
-    BannerAdView(
-        adUnitId = "ca-app-pub-3940256099942544/6300978111",
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp)
-    )
-    Spacer(Modifier.height(Tokens.Sp12))
+    if (SHOW_AD_BANNER) {
+        Spacer(Modifier.height(Tokens.Sp12))
+        BannerAdView(
+            adUnitId = app.trashai.ads.AdIds.banner,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+        )
+        Spacer(Modifier.height(Tokens.Sp12))
+    }
 
     // ---- E-순환거버넌스 무상 수거 안내 (DB 기반 CommonGuide 출력) ----------------------------------------
     if (commonGuide != null) {
         Spacer(Modifier.height(Tokens.Sp16))
-        CommonGuideSection(guide = commonGuide)
+        CommonGuideSection(guide = commonGuide, onBeforeDial = onBeforeDial)
     }
 
     rule.featureText?.let {
         Spacer(Modifier.height(Tokens.Sp12))
-        InfoBlock(icon = Icons.Outlined.EnergySavingsLeaf, title = "특징", body = it, accent = Tokens.PrimarySoft, iconTint = Tokens.Primary)
+        InfoBlock(icon = Icons.Outlined.EnergySavingsLeaf, title = "특징", body = it, accent = Tokens.PrimarySoft, iconTint = Tokens.Primary, onBeforeDial = onBeforeDial)
     }
-    rule.cautionText?.let {
+    rule.cautionText?.trim()?.takeIf { it.isNotEmpty() }?.let {
         Spacer(Modifier.height(Tokens.Sp8))
-        InfoBlock(icon = Icons.Outlined.WarningAmber, title = "주의", body = it, accent = Tokens.Warning, iconTint = Tokens.WarningText)
+        InfoBlock(icon = Icons.Outlined.WarningAmber, title = "주의", body = it, accent = Tokens.Warning, iconTint = Tokens.WarningText, onBeforeDial = onBeforeDial)
     }
 
     Spacer(Modifier.height(Tokens.Sp16))
@@ -209,6 +215,7 @@ fun RegionOfficialInfoSection(
     regionLabel: String?,
     regionOrdinance: app.trashai.data.RegionOrdinance?,
     regionExtras: RegionExtras,
+    onBeforeDial: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val moisLines = regionExtras.moisSchedules.filter { it.hasSchedule }
@@ -256,18 +263,19 @@ fun RegionOfficialInfoSection(
 
             if (hasContact) {
                 val c = contact!!
-                Spacer(Modifier.height(Tokens.Sp8))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(Tokens.Radius12))
-                        .background(Tokens.PrimarySoft)
+                        .clip(RoundedCornerShape(Tokens.Radius8))
+                        .background(Tokens.Surface)
+                        .border(1.dp, Tokens.Divider, RoundedCornerShape(Tokens.Radius8))
                         .clickable(enabled = !c.telUri.isNullOrBlank()) {
                             c.telUri?.let { uri ->
+                                onBeforeDial()
                                 context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse(uri)))
                             }
                         }
-                        .padding(horizontal = Tokens.Sp16, vertical = Tokens.Sp16),
+                        .padding(horizontal = Tokens.Sp12, vertical = Tokens.Sp8),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(Modifier.weight(1f)) {
@@ -284,11 +292,11 @@ fun RegionOfficialInfoSection(
                         if (agencyInfo.isNotEmpty()) {
                             Text(
                                 text = agencyInfo,
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 color = Tokens.TextSecondary,
                                 fontWeight = FontWeight.Medium
                             )
-                            Spacer(Modifier.height(Tokens.Sp6))
+                            Spacer(Modifier.height(2.dp))
                         }
 
                         // 전화번호와 수화기 아이콘을 한 행에 정렬하여 시선 분산 방지
@@ -296,15 +304,15 @@ fun RegionOfficialInfoSection(
                             Icon(
                                 imageVector = Icons.Outlined.Phone,
                                 contentDescription = null,
-                                tint = Tokens.Primary,
-                                modifier = Modifier.size(18.dp)
+                                tint = Tokens.TextSecondary,
+                                modifier = Modifier.size(14.dp)
                             )
-                            Spacer(Modifier.width(Tokens.Sp8))
+                            Spacer(Modifier.width(Tokens.Sp6))
                             Text(
                                 text = c.phone,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Tokens.Primary
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Tokens.TextSecondary
                             )
                         }
                     }
@@ -312,12 +320,12 @@ fun RegionOfficialInfoSection(
                         // 텍스트 형태에서 클릭 가능한 버튼 느낌이 나도록 배경과 패딩 추가
                         Text(
                             text = "전화",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Tokens.Primary,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Tokens.TextSecondary,
                             modifier = Modifier
-                                .background(Color.White, RoundedCornerShape(Tokens.Radius8))
-                                .padding(horizontal = Tokens.Sp12, vertical = Tokens.Sp6)
+                                .background(Tokens.SurfaceMuted, RoundedCornerShape(Tokens.Radius8))
+                                .padding(horizontal = Tokens.Sp8, vertical = Tokens.Sp4)
                         )
                     }
                 }
@@ -328,28 +336,38 @@ fun RegionOfficialInfoSection(
 
 @Composable
 private fun MoisScheduleLine(rule: MoisDisposalRule) {
-    Column(Modifier.padding(vertical = 4.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Tokens.Radius8))
+            .background(Tokens.AccentSoft)
+            .border(1.dp, Tokens.Accent.copy(alpha = 0.25f), RoundedCornerShape(Tokens.Radius8))
+            .padding(horizontal = Tokens.Sp12, vertical = Tokens.Sp8),
+    ) {
         Text(
             rule.category,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Tokens.Primary,
+            color = Tokens.Accent,
         )
         rule.disposalTime?.let {
+            Spacer(Modifier.height(2.dp))
             Text(
                 "⏰ $it",
-                fontSize = 13.sp,
+                fontSize = 17.sp,
                 color = Tokens.TextPrimary,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.Medium,
+                lineHeight = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
             )
         }
         rule.disposalMethod?.takeIf { it.isNotBlank() }?.let {
+            Spacer(Modifier.height(2.dp))
             Text(
                 it.take(120) + if (it.length > 120) "…" else "",
-                fontSize = 12.sp,
-                color = Tokens.TextSecondary,
-                lineHeight = 18.sp,
+                fontSize = 13.sp,
+                color = Tokens.TextPrimary,
+                lineHeight = 19.sp,
+                fontWeight = FontWeight.Medium,
             )
         }
     }
@@ -357,10 +375,24 @@ private fun MoisScheduleLine(rule: MoisDisposalRule) {
 
 @Composable
 private fun RegionHintLine(icon: ImageVector, text: String) {
-    Row(verticalAlignment = Alignment.Top) {
-        Icon(icon, null, tint = Tokens.TextSecondary, modifier = Modifier.size(16.dp))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Tokens.Radius8))
+            .background(Tokens.AccentSoft)
+            .border(1.dp, Tokens.Accent.copy(alpha = 0.25f), RoundedCornerShape(Tokens.Radius8))
+            .padding(horizontal = Tokens.Sp12, vertical = Tokens.Sp8),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, null, tint = Tokens.Accent, modifier = Modifier.size(18.dp))
         Spacer(Modifier.width(Tokens.Sp8))
-        Text(text, color = Tokens.TextSecondary, fontSize = 13.sp, lineHeight = 20.sp)
+        Text(
+            text,
+            color = Tokens.TextPrimary,
+            fontSize = 15.sp,
+            lineHeight = 21.sp,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 
@@ -443,7 +475,8 @@ private fun StepCard(
     number: Int,
     body: String,
     fraction: Float,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBeforeDial: () -> Unit = {},
 ) {
     val bulletRegex = Regex("^[•\\-*·\\d.]+\\s*")
     val cleanBody = body.trim().replaceFirst(bulletRegex, "")
@@ -503,6 +536,7 @@ private fun StepCard(
                 fontWeight = if (fraction > 0.5f) FontWeight.ExtraBold else FontWeight.Bold,
                 textAlign = TextAlign.Start,
             ),
+            onBeforeDial = onBeforeDial,
         )
     }
 }
@@ -514,6 +548,7 @@ private fun InfoBlock(
     body: String,
     accent: Color,
     iconTint: Color,
+    onBeforeDial: () -> Unit = {},
 ) {
     Row(
         modifier = Modifier
@@ -550,6 +585,7 @@ private fun InfoBlock(
                         color = Tokens.TextPrimary,
                         lineHeight = 16.sp,
                     ),
+                    onBeforeDial = onBeforeDial,
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -569,6 +605,7 @@ private fun InfoBlock(
                                     color = Tokens.TextPrimary,
                                     lineHeight = 16.sp,
                                 ),
+                                onBeforeDial = onBeforeDial,
                             )
                         }
                     }
@@ -579,7 +616,10 @@ private fun InfoBlock(
 }
 
 @Composable
-fun CommonGuideSection(guide: CommonGuide) {
+fun CommonGuideSection(
+    guide: CommonGuide,
+    onBeforeDial: () -> Unit = {},
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -611,6 +651,7 @@ fun CommonGuideSection(guide: CommonGuide) {
                 color = Tokens.TextSecondary,
                 lineHeight = 20.sp,
             ),
+            onBeforeDial = onBeforeDial,
         )
         Spacer(Modifier.height(Tokens.Sp16))
         
@@ -676,7 +717,10 @@ fun CommonGuideSection(guide: CommonGuide) {
             ?: if (dialUri != null) "$ECYCLE_DISPLAY_NUMBER 전화 접수 (E-순환거버넌스)" else null
         if (dialUri != null && dialLabel != null) {
             Button(
-                onClick = { dialPhoneNumber(context, dialUri) },
+                onClick = {
+                    onBeforeDial()
+                    dialPhoneNumber(context, dialUri)
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Tokens.Primary),
                 shape = RoundedCornerShape(Tokens.Radius12),
                 modifier = Modifier.fillMaxWidth(),
