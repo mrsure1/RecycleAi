@@ -1,0 +1,25 @@
+---
+description: PowerPoint(pptx) 생성·수정·분석. RecycleAI 발표 덱, python-pptx, 영상 삽입 작업 시 적용.
+globs: "docs/presentation/**/*.{py,md,pptx}"
+alwaysApply: false
+---
+
+# PPTX (RecycleAI 발표)
+
+PPT 작업 시 **Agent 스킬 `@pptx`**(Anthropic, skills.sh)를 먼저 따른다.
+
+## 이 저장소 파이프라인
+
+| 작업 | 스크립트 |
+|------|----------|
+| HTML → PPT 캡처 | `python docs/presentation/sync_html_to_pptx.py` |
+| 12·25페이지 영상·레이아웃 | `python docs/presentation/pptx_embed_videos.py` |
+| 텍스트 전용 PPT | `python docs/presentation/build_presentation.py --text` |
+
+## `@pptx` 스킬 요약
+
+- 읽기: `python -m markitdown file.pptx`, `thumbnail.py`
+- 템플릿 편집: unpack → XML/슬라이드 조작 → pack (`editing.md`)
+- 디자인: 단색 불릿 지양, 팔레트·대비·시각 모티프 명시
+
+카드 SSOT 문구는 SQLite/공식 텍스트 유지. PPT 1페이지는 `body.ppt-capture` + `#slide-1 .slide-pro` 정적 타이틀. 슬라이드 12·25는 `pptx_embed_videos.py`로 재생성.
