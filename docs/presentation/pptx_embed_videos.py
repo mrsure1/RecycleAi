@@ -17,6 +17,8 @@ from pptx.util import Inches, Pt
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
+HF_TTS_MODEL_URL = "https://huggingface.co/Supertone/supertonic-3"
+HIGGSFIELD_URL = "https://higgsfield.ai"
 
 # HTML :root 토큰
 C_BG = RGBColor(0x0B, 0x11, 0x20)
@@ -289,6 +291,27 @@ def _embed_video(slide, video: Path, screen_l: float, screen_t: float, screen_w:
     )
 
 
+def _demo_narration_note(slide) -> None:
+    """시연 영상 나레이션 — Hugging Face 로컬 TTS 안내."""
+    box = slide.shapes.add_textbox(Inches(0.55), Inches(6.38), Inches(12.2), Inches(0.95))
+    tf = box.text_frame
+    tf.word_wrap = True
+    p1 = tf.paragraphs[0]
+    p1.text = "🎙️ 나레이션: Hugging Face에서 받은 Supertonic 3 로컬 TTS로 합성 (무료·오프라인)"
+    p1.font.size = Pt(11)
+    p1.font.color.rgb = C_TEXT2
+    p1.alignment = PP_ALIGN.CENTER
+    p2 = tf.add_paragraph()
+    p2.text = HF_TTS_MODEL_URL
+    p2.font.size = Pt(10)
+    p2.font.color.rgb = C_GREEN_LT
+    p2.alignment = PP_ALIGN.CENTER
+    try:
+        p2.hyperlink.address = HF_TTS_MODEL_URL
+    except AttributeError:
+        pass
+
+
 def _build_slide_12(slide) -> None:
     _slide_header(slide, "11", "Demo", "데모 시나리오", "발표 시 실시간 연출")
     _timeline(slide, DEMO_STEPS)
@@ -297,6 +320,28 @@ def _build_slide_12(slide) -> None:
     y = _fullscreen_button(slide, PHONE_LEFT_DEMO, demo)
     _play_hint(slide, PHONE_LEFT_DEMO, y)
     _embed_video(slide, demo, *screen)
+    _demo_narration_note(slide)
+
+
+def _ad_production_note(slide) -> None:
+    """SNS 광고 영상 — Cursor Higgsfield MCP 안내."""
+    box = slide.shapes.add_textbox(Inches(1.2), Inches(6.35), Inches(10.9), Inches(0.95))
+    tf = box.text_frame
+    tf.word_wrap = True
+    p1 = tf.paragraphs[0]
+    p1.text = "🎬 제작: Cursor의 Higgsfield MCP로 AI 홍보 영상 생성 (9:16 UGC · 한국어 립싱크)"
+    p1.font.size = Pt(11)
+    p1.font.color.rgb = C_TEXT2
+    p1.alignment = PP_ALIGN.CENTER
+    p2 = tf.add_paragraph()
+    p2.text = f"참고: {HIGGSFIELD_URL} · docs/presentation/HIGGSFIELD_AD_VIDEO.md"
+    p2.font.size = Pt(10)
+    p2.font.color.rgb = C_GREEN_LT
+    p2.alignment = PP_ALIGN.CENTER
+    try:
+        p2.hyperlink.address = HIGGSFIELD_URL
+    except AttributeError:
+        pass
 
 
 def _build_slide_25(slide) -> None:
@@ -312,10 +357,11 @@ def _build_slide_25(slide) -> None:
     y = _fullscreen_button(slide, PHONE_LEFT_AD, ad)
     _play_hint(slide, PHONE_LEFT_AD, y, " · 음소거 해제 권장")
     _embed_video(slide, ad, *screen)
+    _ad_production_note(slide)
 
-    foot = slide.shapes.add_textbox(Inches(2.5), Inches(6.92), Inches(8.3), Inches(0.35))
+    foot = slide.shapes.add_textbox(Inches(2.5), Inches(7.05), Inches(8.3), Inches(0.28))
     foot.text_frame.text = "assets/recycle_ad.mp4"
-    foot.text_frame.paragraphs[0].font.size = Pt(10)
+    foot.text_frame.paragraphs[0].font.size = Pt(9)
     foot.text_frame.paragraphs[0].font.color.rgb = C_MUTED
     foot.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
 

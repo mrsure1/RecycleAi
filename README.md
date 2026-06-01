@@ -101,6 +101,7 @@ python scripts/import_region_extras.py
 | [`docs/public_data_integration_guide.md`](docs/public_data_integration_guide.md) | MOIS API·지역 코드 매핑 |
 | [`docs/admin_operations_guide.md`](docs/admin_operations_guide.md) | 광고 표시·AI 스캔 횟수제한 운영 안내 |
 | [`docs/광고_업데이트_셋업가이드.md`](docs/광고_업데이트_셋업가이드.md) | 광고·인앱 업데이트 셋업 & 배포(AAB) 가이드 |
+| [**HTML 발표 (GitHub Pages)**](https://mrsure1.github.io/TrashAi/presentation/web/index.html) | 슬라이드쇼 · 시연·광고 영상 포함 |
 | [`CLAUDE.md`](CLAUDE.md) | 저장소 작업 가이드 |
 
 ---

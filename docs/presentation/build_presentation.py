@@ -382,6 +382,18 @@ def build(animated: bool = False) -> Path:
         5.55,
         "[시연 영상]\nassets/recycle_demo.mp4",
     )
+    tts = s.shapes.add_textbox(Inches(0.7), Inches(6.42), Inches(12.0), Inches(0.85))
+    ttf = tts.text_frame
+    ttf.word_wrap = True
+    ttf.text = (
+        "나레이션: Hugging Face에서 받은 Supertonic 3 로컬 TTS로 합성 (무료·오프라인)\n"
+        "https://huggingface.co/Supertone/supertonic-3"
+    )
+    ttf.paragraphs[0].font.size = Pt(12)
+    ttf.paragraphs[0].font.color.rgb = GRAY
+    ttf.paragraphs[1].font.size = Pt(11)
+    ttf.paragraphs[1].font.color.rgb = GREEN_LIGHT
+    ttf.paragraphs[1].font.bold = True
 
     # 14 현황
     s = _blank(prs)
@@ -736,6 +748,18 @@ def build(animated: bool = False) -> Path:
     hint.text_frame.text = "발표: 이 슬라이드에서 재생 → Q&A(다음)로 이동 · 파일 직접 실행: assets/recycle_ad.mp4"
     hint.text_frame.paragraphs[0].font.size = Pt(12)
     hint.text_frame.paragraphs[0].font.color.rgb = GRAY
+    ad_note = s.shapes.add_textbox(Inches(0.7), Inches(6.85), Inches(12.0), Inches(0.55))
+    ad_tf = ad_note.text_frame
+    ad_tf.word_wrap = True
+    ad_tf.text = (
+        "제작: Cursor의 Higgsfield MCP로 AI 홍보 영상 생성 (9:16 UGC · 한국어 립싱크)\n"
+        "https://higgsfield.ai · docs/presentation/HIGGSFIELD_AD_VIDEO.md"
+    )
+    ad_tf.paragraphs[0].font.size = Pt(11)
+    ad_tf.paragraphs[0].font.color.rgb = GRAY
+    ad_tf.paragraphs[1].font.size = Pt(10)
+    ad_tf.paragraphs[1].font.color.rgb = GREEN_LIGHT
+    ad_tf.paragraphs[1].font.bold = True
 
     # 28 Q&A
     s = _blank(prs)
