@@ -6,8 +6,8 @@
 
 | 용도 | 주소 |
 |------|------|
-| **발표 (메인)** | https://mrsure1.github.io/TrashAi/presentation/web/index.html |
-| 짧은 진입 (리다이렉트) | https://mrsure1.github.io/TrashAi/ |
+| **발표 (메인)** | https://mrsure1.github.io/RecycleAi/presentation/web/index.html |
+| 짧은 진입 (리다이렉트) | https://mrsure1.github.io/RecycleAi/ |
 
 ## 로컬 미리보기
 
@@ -20,7 +20,7 @@ python -m http.server 8080
 ## 배포 확인
 
 1. GitHub 저장소 → **Actions** → `Deploy presentation (GitHub Pages)` 성공 여부
-2. **Settings → Pages** → Source: **GitHub Actions**
+2. 저장소 **Settings → Pages** → Build and deployment → Source: **GitHub Actions** (처음 한 번만)
 3. 시크릿 창에서 위 URL 열기 (12·25번 영상 재생 확인)
 
 ## 필요한 경로

@@ -2,7 +2,7 @@
 
 ## 웹 공유 (GitHub Pages)
 
-- **발표 URL:** https://mrsure1.github.io/TrashAi/presentation/web/index.html
+- **발표 URL:** https://mrsure1.github.io/RecycleAi/presentation/web/index.html
 - 설정·배포: [GITHUB_PAGES.md](./GITHUB_PAGES.md)
 
 ## 생성 방법
