@@ -102,6 +102,8 @@ python scripts/import_region_extras.py
 | [`docs/admin_operations_guide.md`](docs/admin_operations_guide.md) | 광고 표시·AI 스캔 횟수제한 운영 안내 |
 | [`docs/광고_업데이트_셋업가이드.md`](docs/광고_업데이트_셋업가이드.md) | 광고·인앱 업데이트 셋업 & 배포(AAB) 가이드 |
 | [**HTML 발표 (GitHub Pages)**](https://mrsure1.github.io/RecycleAi/presentation/web/index.html) | 슬라이드쇼 · 시연·광고 영상 포함 |
+| [`docs/presentation/README_PPT_SYNC.md`](docs/presentation/README_PPT_SYNC.md) | PPT 생성: **편집 가능** `RecycleAI_Project_Deck_editable.pptx` · **이미지** `RecycleAI_Project_Deck.pptx` |
+| [`docs/presentation/SKILL_PPTX.md`](docs/presentation/SKILL_PPTX.md) | Cursor `@pptx` 스킬 (Anthropic, PPT 편집·생성) |
 | [`CLAUDE.md`](CLAUDE.md) | 저장소 작업 가이드 |
 
 ---

@@ -27,7 +27,9 @@ from pptx_effects import set_slide_fade_transition
 ROOT = Path(__file__).resolve().parent
 WEB = ROOT / "web"
 ASSETS = ROOT / "assets"
-OUT = ROOT / "RecycleAI_Project_Deck.pptx"
+OUT_VISUAL = ROOT / "RecycleAI_Project_Deck.pptx"
+OUT_EDITABLE = ROOT / "RecycleAI_Project_Deck_editable.pptx"
+OUT = OUT_VISUAL
 CAPTURE_DIR = ROOT / "captures"
 HTML_URL_PATH = "/web/index.html"
 
@@ -77,14 +79,22 @@ def capture_slides_from_html() -> list[Path]:
                 "() => typeof window.goToSlide === 'function'",
                 timeout=30_000,
             )
-            total = page.evaluate("() => document.querySelectorAll('.slide').length")
+            # 1페이지: 정적 프로 타이틀 (GIF·시네마틱 없음)
+            page.evaluate("() => document.body.classList.add('ppt-capture')")
+            total = page.evaluate(
+                "() => document.querySelectorAll('#presentation > .slide').length"
+            )
             for i in range(total):
                 page.evaluate(f"window.goToSlide({i})")
-                # HTML: intro 시네마틱 ~2.5s, bullet stagger delay-5 → 0.5s + anim 0.5s
-                wait_ms = 3800 if i == 0 else 2200
+                wait_ms = 600 if i == 0 else (800 if i == total - 1 else 2200)
                 page.wait_for_timeout(wait_ms)
                 out = CAPTURE_DIR / f"slide_{i + 1:02d}.png"
-                page.locator(".slide.active").screenshot(path=str(out), type="png")
+                if i == total - 1:
+                    page.locator("#presentation").screenshot(path=str(out), type="png")
+                else:
+                    page.locator("#presentation > .slide.active").screenshot(
+                        path=str(out), type="png"
+                    )
                 paths.append(out)
             browser.close()
     finally:
@@ -124,10 +134,10 @@ def build_visual_pptx(images: list[Path], *, embed_video: bool = True) -> Path:
 
 
 def build_text_pptx() -> Path:
-    """기존 텍스트 기반 빌더 + 도형 애니메이션."""
+    """편집 가능 텍스트·표·이미지·영상 슬라이드 (python-pptx)."""
     from build_presentation import build as build_text
 
-    return build_text(animated=True)
+    return build_text(animated=True, output=OUT_EDITABLE)
 
 
 def main() -> None:
@@ -142,7 +152,9 @@ def main() -> None:
 
     if args.mode == "text":
         path = build_text_pptx()
-        print(f"텍스트 PPT 생성: {path}")
+        print(f"편집 가능 PPT 생성: {path}")
+        print("PowerPoint에서 글자·표·도형을 직접 수정할 수 있습니다.")
+        print("시연·광고 영상은 12·25번 슬라이드에 MP4가 삽입됩니다.")
         return
 
     print("HTML 슬라이드 캡처 중 (Playwright)…")
@@ -152,6 +164,7 @@ def main() -> None:
     path = build_visual_pptx(images)
     print(f"시각 동기화 PPT: {path}")
     print("슬라이드쇼에서 전환 효과는 Fade(0.7s)입니다.")
+    print("1페이지: 정적 프로 타이틀 (네이비·틸 악센트)")
     print("12·25페이지: recycle_demo / recycle_ad (슬라이드쇼에서 ▶ 재생)")
 
 

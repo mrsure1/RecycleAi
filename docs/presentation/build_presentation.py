@@ -19,7 +19,9 @@ from pptx.util import Inches, Pt
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "assets"
-OUT = ROOT / "RecycleAI_Project_Deck.pptx"
+OUT_VISUAL = ROOT / "RecycleAI_Project_Deck.pptx"
+OUT_EDITABLE = ROOT / "RecycleAI_Project_Deck_editable.pptx"
+OUT = OUT_EDITABLE
 
 # 브랜드
 GREEN = RGBColor(0x2D, 0x5A, 0x27)
@@ -174,7 +176,7 @@ def _video_or_placeholder(
         tf.vertical_anchor = MSO_ANCHOR.MIDDLE
 
 
-def build(animated: bool = False) -> Path:
+def build(animated: bool = False, *, output: Path | None = None) -> Path:
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
@@ -184,14 +186,24 @@ def build(animated: bool = False) -> Path:
     _center_title(
         s,
         "RecycleAI",
-        "카메라만 비추면, 우리 동네 기준 분리배출을 안내합니다\n바이브코딩 프로젝트 발표 | 2026",
+        "Intel AI 응용앱 크리에이터 · Computer Vision Project.\n카메라만 비추면, 우리 동네 기준 분리배출을 안내합니다",
         title_kr="리사이클AI",
     )
-    foot = s.shapes.add_textbox(Inches(0.8), Inches(6.2), Inches(11.7), Inches(0.5))
-    foot.text_frame.text = "발표자: _________  |  연락: _________"
-    foot.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
-    foot.text_frame.paragraphs[0].font.size = Pt(12)
-    foot.text_frame.paragraphs[0].font.color.rgb = GRAY
+    team = s.shapes.add_textbox(Inches(0.8), Inches(5.75), Inches(11.7), Inches(1.0))
+    ttf = team.text_frame
+    ttf.word_wrap = True
+    for i, line in enumerate(
+        [
+            "팀명: AI 르네상스",
+            "팀원: 이진영, 정호식, 김경숙, 박지선",
+        ]
+    ):
+        p = ttf.paragraphs[0] if i == 0 else ttf.add_paragraph()
+        p.text = line
+        p.alignment = PP_ALIGN.CENTER
+        p.font.size = Pt(16)
+        p.font.color.rgb = DARK
+        p.space_after = Pt(4)
 
     # 2 Problem
     s = _blank(prs)
@@ -787,8 +799,9 @@ def build(animated: bool = False) -> Path:
             if i > 0:
                 set_slide_fade_transition(slide)
 
-    prs.save(OUT)
-    return OUT
+    target = output or OUT_EDITABLE
+    prs.save(target)
+    return target
 
 
 if __name__ == "__main__":
